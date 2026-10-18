@@ -1,0 +1,48 @@
+{
+  "name": "dsh-pet",
+  "version": "0.1.0",
+  "description": "A draggable desktop pet for the DSH Web UI that changes form on every visit, cycles states on click, and dozes off when you leave it alone.",
+  "type": "module",
+  "license": "MIT",
+  "author": "YG",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "cordis",
+    "desktop-pet",
+    "overlay"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rudong1/dsh-pet.git"
+  },
+  "icon": "./icon.svg",
+  "engines": {
+    "dsh": ">=0.2.0-rc.2"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "assets/*.png",
+    "tools/"
+  ],
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  }
+}
