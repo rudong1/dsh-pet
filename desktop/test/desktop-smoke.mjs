@@ -4,12 +4,12 @@ import { mkdtemp, rm, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-const project = fileURLToPath(new URL('..', import.meta.url))
+const project = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const userData = await mkdtemp(path.join(tmpdir(), 'dsh-pet-test-'))
-const args = [ ...(process.platform === 'linux' ? ['--no-sandbox', '--disable-gpu'] : []), `--user-data-dir=${userData}`, project ]
+const args = [ ...(process.platform === 'linux' ? ['--no-sandbox', '--disable-gpu'] : []), `--user-data-dir=${userData}`, '.' ]
 let app
 try {
-  app = await electron.launch({ args })
+  app = await electron.launch({ args, cwd: project })
   const page = await app.firstWindow()
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
@@ -106,7 +106,7 @@ try {
   const prefs = JSON.parse(await readFile(path.join(userData, 'pet-preferences.json'), 'utf8'))
   assert.equal(prefs.form, 'alt'); assert.equal(prefs.alwaysOnTop, false)
   assert.equal(prefs.x, 120); assert.equal(prefs.y, 80)
-  app = await electron.launch({ args })
+  app = await electron.launch({ args, cwd: project })
   const restored = await app.firstWindow()
   await restored.waitForFunction(() => document.querySelector('#root > div')?.title === 'alt · intro')
   const bounds = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getBounds())
