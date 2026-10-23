@@ -14,7 +14,7 @@ https://github.com/rudong1/dsh-pet/archive/refs/heads/main.tar.gz
 
 ## Windows 独立桌面版
 
-不运行 DSH 也能使用桌宠，支持托盘显示／隐藏、退出、切换形态、置顶和可选开机启动。下载、运行和打包方法见 [桌面版说明](desktop/README.md)。原有 DSH 插件安装方式保持不变。
+不运行 DSH 也能使用桌宠，右键可切换形态、查看帮助或退出；托盘还支持显示／隐藏、置顶和可选开机启动。下载、运行和打包方法见 [桌面版说明](desktop/README.md)。原有 DSH 插件安装方式保持不变。
 
 ## 互动玩法
 

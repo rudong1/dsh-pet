@@ -334,6 +334,9 @@ window.__ModuleLoader__.load({
       const [tilt, setTilt] = React.useState(0)
       const [pulse, setPulse] = React.useState(0)
       const [reaction, setReaction] = React.useState(null)
+      const [captionOffset, setCaptionOffset] = React.useState(0)
+      const [viewportWidth, setViewportWidth] = React.useState(window.innerWidth)
+      const captionRef = React.useRef(null)
 
       const drag = React.useRef(null)
       const posRef = React.useRef(pos)
@@ -361,9 +364,18 @@ window.__ModuleLoader__.load({
       }
 
       React.useEffect(function () {
-        setFacing(facingFor(posRef.current))
+        let unsubscribe
+        if (window.desktopPet && window.desktopPet.getFacing) {
+          let mounted = true
+          window.desktopPet.getFacing().then(function (side) { if (mounted) setFacing(side) })
+          const off = window.desktopPet.onFacingChange(setFacing)
+          unsubscribe = function () { mounted = false; off() }
+        } else {
+          setFacing(facingFor(posRef.current))
+        }
         armIdle()
         return function () {
+          if (unsubscribe) unsubscribe()
           disarmIdle()
           if (bonkTimer.current) window.clearTimeout(bonkTimer.current)
           if (reactionTimer.current) window.clearTimeout(reactionTimer.current)
@@ -438,6 +450,7 @@ window.__ModuleLoader__.load({
           if (drag.current) onUp({ type: 'pointercancel', pointerId: drag.current.pointerId })
         }
         function onResize() {
+          setViewportWidth(window.innerWidth)
           if (window.desktopPet) return
           const next = clamp(posRef.current)
           if (next.x !== posRef.current.x || next.y !== posRef.current.y) {
@@ -487,6 +500,18 @@ window.__ModuleLoader__.load({
 
       const current = asleep ? form.idleState : reaction ? Object.assign({ captionTone: form.id === 'alt' ? 'pink' : 'blue', captionGap: form.id === 'alt' ? 58 : 2 }, form.reactions[reaction]) : form.states[stateIndex % form.states.length]
       const tone = TONES[current.captionTone] || TONES.blue
+      const mirrored = facing === 'left'
+
+      // Move the readable caption as a separate layer; never mirror its letters.
+      // Measure after layout so short/long captions remain inside the viewport.
+      React.useLayoutEffect(function () {
+        if (!captionRef.current) return
+        const rect = captionRef.current.getBoundingClientRect()
+        const naturalLeft = rect.left - captionOffset
+        const targetLeft = Math.max(8, Math.min(naturalLeft, viewportWidth - 8 - rect.width))
+        const nextOffset = targetLeft - naturalLeft
+        if (Math.abs(nextOffset - captionOffset) > 0.5) setCaptionOffset(nextOffset)
+      })
 
       return h('div', {
         style: {
@@ -506,7 +531,7 @@ window.__ModuleLoader__.load({
       },
         h('style', { dangerouslySetInnerHTML: { __html: STYLE } }),
 
-        h('div', { style: { transform: 'scaleX(' + (facing === 'left' ? -1 : 1) + ')' } },
+        h('div', { 'data-pet-layer': 'art', style: { transform: 'scaleX(' + (mirrored ? -1 : 1) + ')' } },
 
           h('div', {
             className: 'dsh-pet-motion',
@@ -541,12 +566,16 @@ window.__ModuleLoader__.load({
         // Caption sits outside the mirror layer, so it never renders reversed.
         (current.caption || current.captionLines)
           ? h('div', {
+              ref: captionRef,
+              'data-pet-layer': 'caption',
               style: Object.assign({
                 position: 'absolute',
                 bottom: '100%',
                 marginBottom: (current.captionGap || 2) + 'px',
                 width: 'max-content',
-                maxWidth: '250px',
+                maxWidth: 'min(250px, calc(100vw - 32px))',
+                overflowWrap: 'anywhere',
+                translate: captionOffset + 'px 0',
                 font: '800 12px/1.45 "HarmonyOS Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif',
                 whiteSpace: 'pre-line',
                 letterSpacing: '0.6px',
@@ -558,17 +587,17 @@ window.__ModuleLoader__.load({
                 userSelect: 'none',
               },
                 current.captionPos === 'top-right'
-                  ? { right: '0px', textAlign: 'right' }
+                  ? (mirrored ? { left: '0px', textAlign: 'left' } : { right: '0px', textAlign: 'right' })
                   : { left: '50%', transform: 'translateX(-50%) rotate(-2deg)', textAlign: 'center' }),
             },
               current.captionLines
                 ? current.captionLines.map(function (line, index) {
-                    var shift = line.offset ? ' translateX(' + line.offset + 'px)' : ''
-                    var tilt = line.rotate ? ' rotate(' + line.rotate + 'deg)' : ''
+                    var shift = line.offset ? ' translateX(' + (line.offset * (mirrored ? -1 : 1)) + 'px)' : ''
+                    var tilt = line.rotate ? ' rotate(' + (line.rotate * (mirrored ? -1 : 1)) + 'deg)' : ''
                     return h('div', {
                       key: index,
                       style: {
-                        textAlign: line.align,
+                        textAlign: mirrored && line.align === 'left' ? 'right' : mirrored && line.align === 'right' ? 'left' : line.align,
                         transform: (shift + tilt).trim() || 'none',
                       },
                     }, line.t)

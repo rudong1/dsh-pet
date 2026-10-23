@@ -1,6 +1,6 @@
 {
   "name": "dsh-pet-desktop",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "独立运行在 Windows 桌面的互动桌宠",
   "author": "YG",
   "license": "MIT",
@@ -33,7 +33,8 @@
       "main.cjs",
       "preload.cjs",
       "window-state.cjs",
-      "dist/**/*"
+      "dist/**/*",
+      "help.cjs"
     ],
     "win": {
       "target": "zip",
