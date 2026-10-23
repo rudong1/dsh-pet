@@ -10,6 +10,8 @@ window.__ModuleLoader__.load({
     const IDLE_MS = 120000
     const DRAG_TILT = 7
     const BONK_MS = 420
+    const POKE_WINDOW_MS = 900
+    const REACTION_MS = 4000
 
     // Filled from assets/*.png by tools/embed-art.py, keyed "<form>/<state>".
     // A missing entry falls back to the placeholder drawing below.
@@ -68,6 +70,11 @@ window.__ModuleLoader__.load({
             ],
           },
         ],
+        reactions: {
+          pet: { id: 'pet', art: 'bright', caption: '嘿嘿，摸摸头~\n再摸一下也可以哦', eyes: 'happy', mouth: 'big' },
+          annoyed: { id: 'annoyed', art: 'squint', caption: '你怎么一直戳我呀……', eyes: 'open', mouth: 'small' },
+          angry: { id: 'angry', art: 'panic', caption: '不许再戳啦！\n小肥鱼也是有脾气的！', eyes: 'wide', mouth: 'big' },
+        },
         idleState: { id: 'sleep', eyes: 'closed', mouth: 'sleep' },
       },
       {
@@ -105,6 +112,11 @@ window.__ModuleLoader__.load({
             ],
           },
         ],
+        reactions: {
+          pet: { id: 'pet', art: 'intro', caption: '唔……只准摸一下。\n才没有很开心呢！' },
+          annoyed: { id: 'annoyed', art: 'work', caption: '喂，你的手指没有别的事做吗？' },
+          angry: { id: 'angry', art: 'hungry', caption: '再戳就把你的 token 全吃掉！' },
+        },
         idleState: {
           id: 'sleep',
           eyes: 'closed',
@@ -124,6 +136,8 @@ window.__ModuleLoader__.load({
       '@keyframes dsh-pet-sway{0%,100%{transform:rotate(-2.4deg)}50%{transform:rotate(2.4deg)}}',
       '@keyframes dsh-pet-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}',
       // Bonked on the head: pushed down and squashed, then springs back.
+      '@keyframes dsh-pet-pat{0%,100%{transform:scale(1)}50%{transform:translateY(3px) scale(1.05,0.95)}}',
+      '@keyframes dsh-pet-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px) rotate(-3deg)}40%,80%{transform:translateX(5px) rotate(3deg)}}',
       '@keyframes dsh-pet-bonk{0%{transform:translateY(0) scale(1,1)}22%{transform:translateY(4px) scale(1.12,0.84)}48%{transform:translateY(-3px) scale(0.94,1.08)}72%{transform:translateY(1px) scale(1.03,0.97)}100%{transform:translateY(0) scale(1,1)}}',
       '@media (prefers-reduced-motion: reduce){',
       '.dsh-pet-motion{animation:none !important}',
@@ -275,7 +289,7 @@ window.__ModuleLoader__.load({
     }
 
     function PetArt(props) {
-      const src = ART[props.form.id + '/' + props.state.id] || ART['mint/' + props.state.id]
+      const src = ART[props.form.id + '/' + props.state.id] || ART[props.form.id + '/' + props.state.art] || ART['mint/' + props.state.id]
       if (src) {
         // Render at the scaled size instead of scaling a transform: transform would
         // resample an already-rasterised 160px layer and soften the artwork.
@@ -316,17 +330,22 @@ window.__ModuleLoader__.load({
       const [asleep, setAsleep] = React.useState(false)
       const [tilt, setTilt] = React.useState(0)
       const [pulse, setPulse] = React.useState(0)
+      const [reaction, setReaction] = React.useState(null)
 
       const drag = React.useRef(null)
       const posRef = React.useRef(pos)
       const idleTimer = React.useRef(null)
       const bonkTimer = React.useRef(null)
+      const reactionTimer = React.useRef(null)
+      const pokes = React.useRef({ count: 0, last: null })
       posRef.current = pos
 
       function armIdle() {
         if (idleTimer.current) window.clearTimeout(idleTimer.current)
         idleTimer.current = window.setTimeout(function () {
           idleTimer.current = null
+          setReaction(null)
+          pokes.current = { count: 0, last: null }
           setAsleep(true)
         }, IDLE_MS)
       }
@@ -344,13 +363,14 @@ window.__ModuleLoader__.load({
         return function () {
           disarmIdle()
           if (bonkTimer.current) window.clearTimeout(bonkTimer.current)
+          if (reactionTimer.current) window.clearTimeout(reactionTimer.current)
         }
       }, [])
 
       React.useEffect(function () {
         function onMove(event) {
           const active = drag.current
-          if (!active) return
+          if (!active || event.pointerId !== active.pointerId) return
           const next = clamp({
             x: active.originX + event.clientX - active.startX,
             y: active.originY + event.clientY - active.startY,
@@ -365,13 +385,15 @@ window.__ModuleLoader__.load({
           setFacing(facingFor(next))
           if (Math.abs(dx) > 3) setTilt(dx > 0 ? DRAG_TILT : -DRAG_TILT)
         }
-        function onUp() {
+        function onUp(event) {
           const active = drag.current
-          if (!active) return
+          if (!active || event.pointerId !== active.pointerId) return
           drag.current = null
           setDragging(false)
           setTilt(0)
+          if (event.type === 'pointercancel') { armIdle(); return }
           if (active.moved) {
+            pokes.current = { count: 0, last: null }
             if (active.last) {
               const saved = readStore()
               saved.pos = active.last
@@ -380,12 +402,26 @@ window.__ModuleLoader__.load({
           } else {
             setAsleep(false)
             setPulse(function (n) { return n + 1 })
-            // The state advances only after the bonk plays, so the hit reads first.
             if (bonkTimer.current) window.clearTimeout(bonkTimer.current)
-            bonkTimer.current = window.setTimeout(function () {
-              bonkTimer.current = null
-              setStateIndex(function (i) { return (i + 1) % form.states.length })
-            }, BONK_MS)
+            if (reactionTimer.current) window.clearTimeout(reactionTimer.current)
+            const now = Date.now()
+            const streak = pokes.current
+            streak.count = streak.last !== null && now - streak.last <= POKE_WINDOW_MS ? streak.count + 1 : 1
+            streak.last = now
+            const nextReaction = streak.count >= 3 ? 'angry' : streak.count === 2 ? 'annoyed' : active.head ? 'pet' : null
+            setReaction(nextReaction)
+            if (nextReaction) {
+              reactionTimer.current = window.setTimeout(function () {
+                reactionTimer.current = null
+                pokes.current = { count: 0, last: null }
+                setReaction(null)
+              }, REACTION_MS)
+            } else {
+              bonkTimer.current = window.setTimeout(function () {
+                bonkTimer.current = null
+                setStateIndex(function (i) { return (i + 1) % form.states.length })
+              }, BONK_MS)
+            }
           }
           armIdle()
         }
@@ -411,8 +447,13 @@ window.__ModuleLoader__.load({
 
       function onPointerDown(event) {
         if (event.button !== 0 && event.button != null) return
+        if (drag.current) return
         event.preventDefault()
+        disarmIdle()
+        const bounds = event.currentTarget.getBoundingClientRect()
         drag.current = {
+          pointerId: event.pointerId,
+          head: event.clientY < bounds.top + SIZE * 0.45,
           startX: event.clientX,
           startY: event.clientY,
           originX: posRef.current.x,
@@ -423,7 +464,7 @@ window.__ModuleLoader__.load({
         setDragging(true)
       }
 
-      const current = asleep ? form.idleState : form.states[stateIndex % form.states.length]
+      const current = asleep ? form.idleState : reaction ? Object.assign({ captionTone: form.id === 'alt' ? 'pink' : 'blue', captionGap: form.id === 'alt' ? 58 : 2 }, form.reactions[reaction]) : form.states[stateIndex % form.states.length]
       const tone = TONES[current.captionTone] || TONES.blue
 
       return h('div', {
@@ -467,7 +508,7 @@ window.__ModuleLoader__.load({
                 h('div', {
                   key: pulse,
                   className: 'dsh-pet-motion',
-                  style: { position: 'relative', width: SIZE + 'px', height: SIZE + 'px', animation: 'dsh-pet-bonk ' + BONK_MS + 'ms ease-out' },
+                  style: { position: 'relative', width: SIZE + 'px', height: SIZE + 'px', animation: (reaction === 'pet' ? 'dsh-pet-pat 600ms ease-in-out' : reaction === 'angry' || reaction === 'annoyed' ? 'dsh-pet-shake 420ms ease-out' : 'dsh-pet-bonk ' + BONK_MS + 'ms ease-out') },
                 },
                   h(PetArt, { form: form, state: current, asleep: asleep })
                 )
