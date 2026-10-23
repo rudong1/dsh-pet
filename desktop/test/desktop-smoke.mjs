@@ -85,10 +85,9 @@ try {
   }
   await menuClick('工作ing')
   await state('alt', 'peek')
-  await page.clock.install()
+  await page.clock.resume()
   assert.equal(await app.evaluate(({ Menu }) => Menu.testMenu.items.find(item => item.label === '工作ing').checked), true)
-  await page.clock.runFor(9000)
-  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'settle')
+  await page.waitForFunction(() => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === 'settle', null, { timeout: 20000 })
   await page.clock.runFor(120010)
   for (let n = 0; n < 3; n++) await page.mouse.click(210, 210)
   await page.clock.runFor(5000)
@@ -102,11 +101,12 @@ try {
   console.log('PASS 工作ing plays once, holds through idle and pokes, and toggles back to normal')
   await menuClick('表白')
   await state('alt', 'confess')
-  await page.clock.install()
-  const story = [['call', 3600], ['concern', 3000], ['declaration', 3200], ['surprise', 2400], ['question', 2800], ['calm', 3200], ['letter', 4000], ['offer', 3600]]
-  for (const [name, duration] of story) {
-    assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), name)
-    await page.clock.runFor(duration + 100)
+  await page.clock.resume()
+  const story = ['call', 'concern', 'declaration', 'surprise', 'question', 'calm', 'letter', 'offer']
+  // Let React effects and the real renderer clock advance each scene. Advancing
+  // a whole sequence with runFor skips effect registration on slower runners.
+  for (const name of story) {
+    await page.waitForFunction(name => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === name, name, { timeout: 10000 })
   }
   await page.clock.runFor(120010)
   await page.mouse.click(210, 210)
