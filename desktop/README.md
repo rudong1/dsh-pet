@@ -4,7 +4,9 @@
 
 ## 使用
 
-从仓库 [Actions → Windows desktop pet](https://github.com/rudong1/dsh-pet/actions/workflows/desktop.yml) 最近一次成功构建的 Artifacts 下载 `dsh-pet-windows-x64`（下载 GitHub 构建产物需要登录）。解压下载文件，再解压其中的 `dsh-pet-desktop-0.2.1-windows-x64.zip` 到一个固定文件夹，双击 `DSH Pet.exe`。
+从仓库 [Actions → Windows desktop pet](https://github.com/rudong1/dsh-pet/actions/workflows/desktop.yml) 打开最新一次构建，确认「Windows download」任务成功后，在该次运行底部 Artifacts 下载 `dsh-pet-windows-x64`（下载 GitHub 构建产物需要登录）。解压一次，双击其中的 `DSH Pet.exe`。
+
+下载任务与 Windows 桌面交互测试分别运行；交互测试失败仍会标记失败，但不会阻止打包任务上传文件。请同时留意该次运行的测试结果，下载文件存在不代表 Windows 交互检查已通过。
 
 请保留解压后的整个目录，不能只移动 exe。第一版未进行 Windows 代码签名，系统可能显示未知发布者提示。
 
