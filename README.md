@@ -30,3 +30,9 @@ https://github.com/rudong1/dsh-pet/archive/refs/heads/main.tar.gz
 ## License
 
 MIT
+
+### 桌面版 v0.4.0 特殊动作
+
+二形态使用新的透明常态立绘。右键或托盘选择“工作ing”或“表白”，播放一次后保持最后一帧；再次点击同一项恢复常态。两个动作可以互相切换，切换形态也会退出。保持期间可以拖动，普通点击和闲置睡眠不会打断。
+
+安装版右键选择“检查更新”即可更新；首次使用到 [Releases](https://github.com/rudong1/dsh-pet/releases/latest) 下载 Windows `.exe` 安装包。

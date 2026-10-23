@@ -28,7 +28,7 @@ try {
     dialog.showMessageBox = async (parent, options) => { Menu.testHelp = options; return { response: 0 } }
   })
   await page.evaluate(() => window.desktopPet.showMenu())
-  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '检查更新', '帮助', '退出'])
+  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '工作ing', '表白', '检查更新', '帮助', '退出'])
   async function menuClick(label) {
     await app.evaluate(({ Menu }, label) => {
       const item = Menu.testMenu.items.find(item => item.label === label)
@@ -83,6 +83,47 @@ try {
     await state(form, initial)
     console.log(`PASS ${form}: native menu selection, head pat, annoyed, angry, recovery, images`)
   }
+  await menuClick('工作ing')
+  await state('alt', 'peek')
+  await page.clock.install()
+  assert.equal(await app.evaluate(({ Menu }) => Menu.testMenu.items.find(item => item.label === '工作ing').checked), true)
+  await page.clock.runFor(9000)
+  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'settle')
+  await page.clock.runFor(120010)
+  for (let n = 0; n < 3; n++) await page.mouse.click(210, 210)
+  await page.clock.runFor(5000)
+  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'settle')
+  await state('alt', 'peek')
+  await menuClick('工作ing')
+  await state('alt', 'intro')
+  assert.equal(await page.locator('[data-sequence-frame]').count(), 0)
+  assert.equal(await app.evaluate(({ Menu }) => Menu.testMenu.items.find(item => item.label === '工作ing').checked), false)
+  await page.clock.install()
+  console.log('PASS 工作ing plays once, holds through idle and pokes, and toggles back to normal')
+  await menuClick('表白')
+  await state('alt', 'confess')
+  await page.clock.install()
+  const story = [['call', 3600], ['concern', 3000], ['declaration', 3200], ['surprise', 2400], ['question', 2800], ['calm', 3200], ['letter', 4000], ['offer', 3600]]
+  for (const [name, duration] of story) {
+    assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), name)
+    await page.clock.runFor(duration + 100)
+  }
+  await page.clock.runFor(120010)
+  await page.mouse.click(210, 210)
+  await page.clock.runFor(5000)
+  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'offer')
+  await menuClick('工作ing')
+  await state('alt', 'peek')
+  assert.equal(await app.evaluate(({ Menu }) => Menu.testMenu.items.find(item => item.label === '表白').checked), false)
+  await menuClick('表白')
+  await state('alt', 'confess')
+  await menuClick('表白')
+  await state('alt', 'intro')
+  assert.equal(await page.locator('[data-sequence-frame]').count(), 0)
+  await page.waitForFunction(() => { const img = document.querySelector('#root img'); return img.complete && img.naturalWidth === 1024 && img.naturalHeight === 1536 })
+  await page.clock.install()
+  console.log('PASS 表白 runs all 8 scenes, holds the offered letter, switches specials and returns to new normal')
+
   await page.clock.runFor(120010)
   await state('alt', 'sleep')
   for (const side of ['right', 'left']) {

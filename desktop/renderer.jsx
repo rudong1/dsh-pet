@@ -1,5 +1,9 @@
+import { confessSequence } from './confess-sequence.mjs'
+import { peekSequence } from './peek-sequence.mjs'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
+const withSources = (sequence, directory) => ({ ...sequence, frames: sequence.frames.map(frame => ({ ...frame, src: new URL(directory + '/' + (frame.art || frame.name) + '.png', window.location.href).href })) })
+window.__DSH_PET_ANIMATIONS__ = { altPeek: withSources(peekSequence, 'alt-peek'), altConfess: withSources(confessSequence, 'alt-confess') }
 const root = createRoot(document.getElementById('root'))
 // Adapt the existing DSH client entrypoint without a running DSH server.
 window.__ModuleLoader__ = {
@@ -17,7 +21,7 @@ window.__ModuleLoader__ = {
 let interactive = false
 function hitTest(event) {
   const pet = document.querySelector('#root > div')
-  const rect = (pet?.querySelector('img') || pet)?.getBoundingClientRect()
+  const rect = (pet?.querySelector('[data-pet-sprite]') || pet?.querySelector('img') || pet)?.getBoundingClientRect()
   const next = !!rect && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom
   if (next !== interactive) { interactive = next; window.desktopPet?.setInteractive(next) }
 }

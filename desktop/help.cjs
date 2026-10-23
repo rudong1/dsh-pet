@@ -1,5 +1,7 @@
 // Add future special interactions here; the Help menu reads this list directly.
 const specialFeatures = [
+  { title: '表白（二形态）', detail: '右键选择“表白”播放剧情，结束后保持递信的最后一帧，再次选择恢复常态。两个特殊动作互相切换；保持期间可拖动，不会被戳或闲置睡眠打断。' },
+  { title: '工作ing（二形态）', detail: '右键选择“工作ing”播放特殊动作，结束后保持最后一帧；再次选择同一项恢复正常状态。保持期间仍可拖动，不会闲置睡眠或被摸头、连续戳打断。切换形态也会退出。' },
   { title: '摸头与连续戳有惊喜', detail: '轻点头部，或试试短时间连续戳几下。两个形态都有自己的反应；停手一会儿就会恢复。' },
 ]
 const helpOptions = {

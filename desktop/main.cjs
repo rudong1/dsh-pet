@@ -5,7 +5,7 @@ const { writeDesktopShortcut } = require('./shortcut.cjs')
 const { createUpdates } = require('./updates.cjs')
 const { helpOptions } = require('./help.cjs')
 const { WIDTH, HEIGHT, fitPosition, readPreferences } = require('./window-state.cjs')
-let win, tray, updates, preferences, preferencesPath, dragging, quitting = false, helpOpen = false
+let win, tray, updates, preferences, preferencesPath, dragging, quitting = false, helpOpen = false, specialActive = null
 
 function savePreferences() {
   if (win && !win.isDestroyed()) Object.assign(preferences, win.getBounds())
@@ -15,8 +15,8 @@ function savePreferences() {
   } catch (error) { console.error('Could not save desktop pet preferences:', error.message) }
 }
 function showPet() { win.showInactive(); refreshMenu() }
-function loadPet() { win.setIgnoreMouseEvents(true, { forward: true }); win.loadFile(path.join(__dirname, 'dist/index.html'), { query: { form: preferences.form } }) }
-function chooseForm(form) { preferences.form = form; dragging = null; savePreferences(); loadPet(); showPet() }
+function loadPet(special = null) { win.setIgnoreMouseEvents(true, { forward: true }); win.loadFile(path.join(__dirname, 'dist/index.html'), { query: { form: preferences.form, ...(special ? { preview: special === 'work' ? 'peek' : 'confess', special } : {}) } }) }
+function chooseForm(form) { specialActive = null; preferences.form = form; dragging = null; savePreferences(); loadPet(); showPet() }
 function currentFacing() {
   const bounds = win.getBounds()
   const area = screen.getDisplayMatching(bounds).workArea
@@ -47,6 +47,13 @@ function petMenuItems() {
       { label: '一形态（mint）', type: 'radio', checked: preferences.form === 'mint', click: () => chooseForm('mint') },
       { label: '二形态（alt）', type: 'radio', checked: preferences.form === 'alt', click: () => chooseForm('alt') },
     ] },
+    ...[['work', '工作ing'], ['confess', '表白']].map(([mode, label]) => ({
+      label, type: 'checkbox', checked: specialActive === mode, click: () => {
+        specialActive = specialActive === mode ? null : mode
+        preferences.form = 'alt'; dragging = null
+        savePreferences(); loadPet(specialActive); showPet()
+      },
+    })),
     ...(updates ? [updates.menuItem()] : []),
     { label: '帮助', click: showHelp },
     { label: '退出', click: () => app.quit() },

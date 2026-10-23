@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'">
+<title>二形态动作 · 本地草稿</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px;background:#111827;color:#e5e7eb;font:15px/1.6 system-ui,sans-serif}main{max-width:760px;margin:auto}h1{font-size:23px;margin:0 0 5px}p{color:#aebdd4;margin:0 0 16px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}button{background:#253550;color:#fff;border:1px solid #51627c;border-radius:8px;padding:9px 15px;cursor:pointer}button:hover{background:#3a506e}.stage{width:420px;height:440px;max-width:100%;position:relative;transform:translateZ(0);margin:20px auto;border-radius:16px;background-color:#d6dce6;background-image:linear-gradient(45deg,#b8c2d2 25%,transparent 25%),linear-gradient(-45deg,#b8c2d2 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#b8c2d2 75%),linear-gradient(-45deg,transparent 75%,#b8c2d2 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;box-shadow:0 15px 45px #0005}.note{font-size:13px}#phase{font-weight:600;color:#ffc6e0}code{color:#e1bfff}
+</style></head><body><main>
+<h1>盯着你 → 偷偷哈气 → 被发现 → 害羞</h1>
+<p>二形态 · 本地动作草稿 · 约 9 秒 · 未发布</p>
+<div class="toolbar"><button id="replay">重新播放</button><button id="caught">被发现</button><button id="left">面向左</button><button id="right">面向右</button></div>
+<div id="phase">准备播放…</div><div class="stage"><div id="root"></div></div>
+<p class="note">棋盘格只用于检查透明背景，不会出现在桌宠素材里。靠近／哈气阶段把鼠标移到人物上，或点“被发现”，可以提前触发害羞。播放结束后点“重新播放”再看。</p>
+<p class="note">8 个生成关键帧，叠加代码位移、缩放和短过渡；这是可调整的第一版，后续可继续细调帧衔接、边缘、节奏和台词。</p>
+</main><script src="preview.js"></script><script src="renderer.js"></script><script src="client.js"></script></body></html>
