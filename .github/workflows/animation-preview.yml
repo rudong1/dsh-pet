@@ -16,6 +16,6 @@ jobs:
         with:
           name: alt-peek-animation-preview
           path: |
-            preview/alt-peek-preview.html
+            preview/alt-peek-preview-clean.html
             preview/README.txt
           if-no-files-found: error
