@@ -1,6 +1,7 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, dialog } = require('electron')
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, dialog, shell } = require('electron')
 const fs = require('node:fs')
 const path = require('node:path')
+const { writeDesktopShortcut } = require('./shortcut.cjs')
 const { createUpdates } = require('./updates.cjs')
 const { helpOptions } = require('./help.cjs')
 const { WIDTH, HEIGHT, fitPosition, readPreferences } = require('./window-state.cjs')
@@ -28,6 +29,18 @@ async function showHelp() {
   try { await dialog.showMessageBox(win, helpOptions) }
   finally { helpOpen = false }
 }
+async function createDesktopShortcut() {
+  if (process.platform !== 'win32' || !app.isPackaged) return
+  showPet()
+  try {
+    writeDesktopShortcut({ shell, desktopPath: app.getPath('desktop'), executable: app.getPath('exe') })
+    await dialog.showMessageBox(win, { type: 'info', title: '桌面快捷方式', message: '桌面快捷方式已创建',
+      detail: '以后双击桌面的 DSH Pet 图标即可启动桌宠。', buttons: ['知道啦'] })
+  } catch {
+    await dialog.showMessageBox(win, { type: 'error', title: '桌面快捷方式', message: '暂时无法创建快捷方式',
+      detail: '请确认桌面文件夹可以写入，然后重试。', buttons: ['知道了'] })
+  }
+}
 function petMenuItems() {
   return [
     { label: '切换形态', submenu: [
@@ -41,6 +54,7 @@ function petMenuItems() {
 }
 function refreshMenu() {
   const settings = [
+    { label: '创建桌面快捷方式', enabled: app.isPackaged && process.platform === 'win32', click: createDesktopShortcut },
     { label: '保持置顶', type: 'checkbox', checked: preferences.alwaysOnTop, click: item => {
       preferences.alwaysOnTop = item.checked; win.setAlwaysOnTop(item.checked); savePreferences(); refreshMenu()
     } },

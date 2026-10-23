@@ -1,6 +1,6 @@
 import { _electron as electron } from 'playwright-core'
 import assert from 'node:assert/strict'
-import { mkdtemp, rm, readFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -46,6 +46,22 @@ try {
   assert.equal(help.title, '桌宠帮助')
   for (const text of ['摸头与连续戳有惊喜', '切换形态', '退出']) assert.ok(help.detail.includes(text))
   console.log('PASS compact right-click menu and Help content')
+  if (process.platform === 'win32') {
+    const desktopPath = path.join(userData, '桌面 测试')
+    await mkdir(desktopPath)
+    const result = await app.evaluate(({ shell, app }, desktopPath) => {
+      const { writeDesktopShortcut } = require(require('node:path').join(process.cwd(), 'shortcut.cjs'))
+      const options = { shell, desktopPath, executable: app.getPath('exe') }
+      const file = writeDesktopShortcut(options)
+      writeDesktopShortcut(options)
+      return { file, link: shell.readShortcutLink(file), executable: app.getPath('exe') }
+    }, desktopPath)
+    assert.equal(result.link.target.toLowerCase(), result.executable.toLowerCase())
+    assert.equal(result.link.appUserModelId, 'com.rudong1.dsh-pet')
+    assert.ok((await readFile(result.file)).length > 0)
+    console.log('PASS real Windows shortcut creation and repeat creation in a Unicode desktop path')
+  }
+
   for (const [form, label, initial] of [['mint', '一形态（mint）', 'peace'], ['alt', '二形态（alt）', 'intro']]) {
     await app.evaluate(({ Menu }, label) => {
       const item = Menu.testMenu.items.find(item => item.label === '切换形态').submenu.items.find(item => item.label === label)
