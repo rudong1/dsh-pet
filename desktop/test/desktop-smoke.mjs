@@ -50,7 +50,8 @@ try {
     const desktopPath = path.join(userData, '桌面 测试')
     await mkdir(desktopPath)
     const result = await app.evaluate(({ shell, app }, desktopPath) => {
-      const { writeDesktopShortcut } = require(require('node:path').join(process.cwd(), 'shortcut.cjs'))
+      const load = process.getBuiltinModule('module').createRequire(process.getBuiltinModule('path').join(process.cwd(), 'package.json'))
+      const { writeDesktopShortcut } = load('./shortcut.cjs')
       const options = { shell, desktopPath, executable: app.getPath('exe') }
       const file = writeDesktopShortcut(options)
       writeDesktopShortcut(options)
@@ -130,6 +131,9 @@ try {
   const bounds = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getBounds())
   assert.equal(bounds.x, 120); assert.equal(bounds.y, 80)
   console.log('PASS form, position and always-on-top preferences persist across restart')
+} catch (error) {
+  if (process.env.GITHUB_ACTIONS === 'true') console.error('::error title=Desktop smoke test::' + String(error.stack || error).replace(/%/g, '%25').replace(/\r/g, '').replace(/\n/g, '%0A'))
+  throw error
 } finally {
   if (app) await app.close()
   await rm(userData, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })

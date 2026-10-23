@@ -6,7 +6,7 @@
 
 从 [GitHub Releases 最新版](https://github.com/rudong1/dsh-pet/releases/latest) 下载 `dsh-pet-setup-版本号-windows-x64.exe` 并运行，即可安装。也可以在 [Actions → Windows desktop pet](https://github.com/rudong1/dsh-pet/actions/workflows/desktop.yml) 的成功「Windows download」任务中下载 `dsh-pet-windows-x64`，解压后运行其中的 setup exe。
 
-0.2.x 的旧免安装版需要先退出，再手动安装一次 0.3.1 或更高版本；设置会保留。之后右键选择「检查更新」即可自动下载新版，完成后选择「立即安装并重启」。也可选「稍后」，准备好后再从右键菜单安装。
+0.2.x 的旧免安装版需要先退出，再手动安装一次 0.3.2 或更高版本；设置会保留。之后右键选择「检查更新」即可自动下载新版，完成后选择「立即安装并重启」。也可选「稍后」，准备好后再从右键菜单安装。
 
 更新只从此仓库的 GitHub Releases 正式版本获取，下载文件会通过 SHA-512 校验；失败可以重试，原版本仍可继续使用。开发环境不会下载或安装更新。程序尚未进行 Windows 代码签名。
 
