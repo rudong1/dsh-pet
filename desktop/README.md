@@ -4,16 +4,16 @@
 
 ## 使用
 
-从仓库 [Actions → Windows desktop pet](https://github.com/rudong1/dsh-pet/actions/workflows/desktop.yml) 打开最新一次构建，确认「Windows download」任务成功后，在该次运行底部 Artifacts 下载 `dsh-pet-windows-x64`（下载 GitHub 构建产物需要登录）。解压一次，双击其中的 `DSH Pet.exe`。
+从 [GitHub Releases 最新版](https://github.com/rudong1/dsh-pet/releases/latest) 下载 `dsh-pet-setup-版本号-windows-x64.exe` 并运行，即可安装。也可以在 [Actions → Windows desktop pet](https://github.com/rudong1/dsh-pet/actions/workflows/desktop.yml) 的成功「Windows download」任务中下载 `dsh-pet-windows-x64`，解压后运行其中的 setup exe。
 
-下载任务与 Windows 桌面交互测试分别运行；交互测试失败仍会标记失败，但不会阻止打包任务上传文件。请同时留意该次运行的测试结果，下载文件存在不代表 Windows 交互检查已通过。
+0.2.x 的旧免安装版需要先退出，再手动安装一次 0.3.0 或更高版本；设置会保留。之后右键选择「检查更新」即可自动下载新版，完成后选择「立即安装并重启」。也可选「稍后」，准备好后再从右键菜单安装。
 
-请保留解压后的整个目录，不能只移动 exe。第一版未进行 Windows 代码签名，系统可能显示未知发布者提示。
+更新只从此仓库的 GitHub Releases 正式版本获取，下载文件会通过 SHA-512 校验；失败可以重试，原版本仍可继续使用。开发环境不会下载或安装更新。程序尚未进行 Windows 代码签名。
 
 - 左键拖动：移动桌宠，退出后记住位置。
 - 点击头部：摸头；快速连续点击：嫌弃 → 生气；停手约 4 秒恢复。
 - 点击身体：切换原有状态。闲置两分钟会睡觉，点击唤醒。
-- 右键桌宠：菜单只有「切换形态」「帮助」「退出」。一形态对应 mint，二形态对应 alt。
+- 右键桌宠：菜单提供「切换形态」「检查更新」「帮助」「退出」。一形态对应 mint，二形态对应 alt。
 - 「帮助」包含基本操作与「摸头与连续戳有惊喜」；后续新玩法会继续补充到这里。
 - 托盘菜单保留显示／隐藏；置顶、开机启动、重置位置收在「设置」中。
 - 任务栏右下角托盘图标可能收在“显示隐藏的图标”中；双击图标可找回桌宠。
@@ -39,20 +39,27 @@ npm ci
 npm start
 ```
 
-构建 Windows x64 压缩包：
+构建 Windows x64 安装包：
 
 ```sh
 npm test
 npm run test:desktop
 npm run dist:win
+npm run verify:release
 ```
 
 输出在 `desktop/release/`。Electron 二进制和构建工具首次安装／打包需要联网。React 与原有 `client.js` 一起打包到本地，运行时不依赖 CDN。
 
 `npm run build` 从上级目录复制 `client.js` 和托盘图片，并构建 React 适配器。修改桌宠代码后重启 `npm start` 即可。无需修改 DSH 插件安装方式。
 
+## 发布新版
+
+修改 `desktop/package.json` 的版本号并同步 lockfile，完成测试后推送 `v版本号` 标签，例如 `v0.3.1`。标签必须与桌面版版本完全一致。
+
+GitHub Actions 会构建 NSIS 安装包，校验 SHA-512 更新元数据，执行 Windows 桌面测试；两项都通过后，才发布 GitHub Release 和其中的 `.exe`、`.exe.blockmap`、`latest.yml`。普通 main 分支提交只构建测试，不会让现有用户收到半成品更新。不要手工修改校验值，也不要用预发布版本替代正式更新。
+
 ## 验证范围
 
 `npm test` 验证窗口位置恢复，`npm run test:desktop` 启动真实 Electron，验证两个形态的互动、托盘菜单操作、关闭后隐藏及重启后的设置恢复。Linux 需要图形会话或 Xvfb。GitHub Actions 也会在 Windows runner 上执行这些检查。
 
-当前云环境已通过 Linux 虚拟桌面中的 Electron 检查，并成功构建 Windows 包；尚未验证 Windows 实机上的透明区域穿透、多显示器鼠标拖动及开机启动。
+自动化检查覆盖更新状态、下载进度、重复检查、失败重试、校验失败不安装，以及安装前保存设置；真实跨版本安装替换仍需要 Windows 实机验收。

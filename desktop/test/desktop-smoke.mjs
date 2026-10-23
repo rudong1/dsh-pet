@@ -28,7 +28,7 @@ try {
     dialog.showMessageBox = async (parent, options) => { Menu.testHelp = options; return { response: 0 } }
   })
   await page.evaluate(() => window.desktopPet.showMenu())
-  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '帮助', '退出'])
+  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '检查更新', '帮助', '退出'])
   async function menuClick(label) {
     await app.evaluate(({ Menu }, label) => {
       const item = Menu.testMenu.items.find(item => item.label === label)
@@ -39,6 +39,8 @@ try {
   async function state(form, state) {
     await page.waitForFunction(title => document.querySelector('#root > div')?.title === title, `${form} · ${state}`)
   }
+  await menuClick('检查更新')
+  assert.ok((await app.evaluate(({ Menu }) => Menu.testHelp.message)).includes('Windows 安装版'))
   await menuClick('帮助')
   const help = await app.evaluate(({ Menu }) => Menu.testHelp)
   assert.equal(help.title, '桌宠帮助')

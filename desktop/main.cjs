@@ -1,9 +1,10 @@
 const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, dialog } = require('electron')
 const fs = require('node:fs')
 const path = require('node:path')
+const { createUpdates } = require('./updates.cjs')
 const { helpOptions } = require('./help.cjs')
 const { WIDTH, HEIGHT, fitPosition, readPreferences } = require('./window-state.cjs')
-let win, tray, preferences, preferencesPath, dragging, quitting = false, helpOpen = false
+let win, tray, updates, preferences, preferencesPath, dragging, quitting = false, helpOpen = false
 
 function savePreferences() {
   if (win && !win.isDestroyed()) Object.assign(preferences, win.getBounds())
@@ -33,6 +34,7 @@ function petMenuItems() {
       { label: '一形态（mint）', type: 'radio', checked: preferences.form === 'mint', click: () => chooseForm('mint') },
       { label: '二形态（alt）', type: 'radio', checked: preferences.form === 'alt', click: () => chooseForm('alt') },
     ] },
+    ...(updates ? [updates.menuItem()] : []),
     { label: '帮助', click: showHelp },
     { label: '退出', click: () => app.quit() },
   ]
@@ -97,6 +99,16 @@ else {
     })
     handle('pet:menu', () => { refreshMenu().popup({ window: win }) })
     app.on('before-quit', () => { quitting = true; savePreferences() })
+    updates = createUpdates({
+      app, autoUpdater: require('electron-updater').autoUpdater, dialog, getWindow: () => win,
+      beforeInstall: () => { savePreferences() },
+      onChange: () => {
+        if (tray && !tray.isDestroyed()) {
+          tray.setToolTip('DSH Pet · ' + updates.menuItem().label)
+          refreshMenu()
+        }
+      },
+    })
     refreshMenu()
     loadPet()
   })

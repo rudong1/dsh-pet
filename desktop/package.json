@@ -1,6 +1,6 @@
 {
   "name": "dsh-pet-desktop",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "独立运行在 Windows 桌面的互动桌宠",
   "author": "YG",
   "license": "MIT",
@@ -10,10 +10,12 @@
     "build": "node build.mjs",
     "start": "npm run build && electron .",
     "test": "node --test test/*.test.cjs",
-    "dist:win": "npm run build && electron-builder --win zip --x64",
-    "test:desktop": "npm run build && node test/desktop-smoke.mjs"
+    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "test:desktop": "npm run build && node test/desktop-smoke.mjs",
+    "verify:release": "node verify-release.mjs"
   },
   "dependencies": {
+    "electron-updater": "6.8.9",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
@@ -34,13 +36,29 @@
       "preload.cjs",
       "window-state.cjs",
       "dist/**/*",
-      "help.cjs"
+      "help.cjs",
+      "updates.cjs"
     ],
     "win": {
-      "target": "zip",
+      "target": "nsis",
       "signAndEditExecutable": false
     },
-    "artifactName": "dsh-pet-desktop-${version}-windows-${arch}.${ext}"
+    "artifactName": "dsh-pet-setup-${version}-windows-${arch}.${ext}",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "rudong1",
+        "repo": "dsh-pet",
+        "releaseType": "release"
+      }
+    ],
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   },
   "repository": {
     "type": "git",
