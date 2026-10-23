@@ -1,0 +1,21 @@
+name: Animation preview download
+on:
+  push:
+    branches: [preview/alt-peek]
+permissions:
+  contents: read
+jobs:
+  preview:
+    name: Download animation preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload offline preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: alt-peek-animation-preview
+          path: |
+            preview/alt-peek-preview.html
+            preview/README.txt
+          if-no-files-found: error
