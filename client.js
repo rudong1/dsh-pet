@@ -10,7 +10,9 @@ window.__ModuleLoader__.load({
     const IDLE_MS = 120000
     const DRAG_TILT = 7
     const BONK_MS = 420
-    const POKE_WINDOW_MS = 900
+    const POKE_WINDOW_MS = 350
+    const POKE_BURST_MS = 1200
+    const HEAD_DWELL_MS = 1000
     const REACTION_MS = 4000
 
     // Filled from assets/*.png by tools/embed-art.py, keyed "<form>/<state>".
@@ -334,6 +336,7 @@ window.__ModuleLoader__.load({
         const box = props.form.id === 'alt' && (props.state.id === 'intro' || props.state.art === 'intro') ? 320 : Math.round(SIZE * (props.form.scale || 1))
         return h('img', {
           src: src,
+          'data-pet-normal-art': props.form.id === 'alt' && (props.state.id === 'intro' || props.state.art === 'intro') ? 'full-body' : 'portrait',
           width: box,
           height: box,
           alt: '',
@@ -384,10 +387,47 @@ window.__ModuleLoader__.load({
       const drag = React.useRef(null)
       const posRef = React.useRef(pos)
       const idleTimer = React.useRef(null)
-      const bonkTimer = React.useRef(null)
       const reactionTimer = React.useRef(null)
-      const pokes = React.useRef({ count: 0, last: null })
+      const pokes = React.useRef({ count: 0, last: null, first: null })
+      const headHover = React.useRef({ timer: null, consumed: false })
+      const interaction = React.useRef({})
+      interaction.current = { asleep: asleep, reaction: reaction }
       posRef.current = pos
+
+      function cancelHeadHover(reset) {
+        if (headHover.current.timer) window.clearTimeout(headHover.current.timer)
+        headHover.current.timer = null
+        if (reset) headHover.current.consumed = false
+      }
+
+      function showReaction(next) {
+        if (reactionTimer.current) window.clearTimeout(reactionTimer.current)
+        setReaction(next)
+        reactionTimer.current = window.setTimeout(function () {
+          reactionTimer.current = null
+          pokes.current = { count: 0, last: null, first: null }
+          setReaction(null)
+        }, REACTION_MS)
+      }
+
+      function updateHeadHover(event) {
+        if (specialMode || drag.current || event.buttons) { cancelHeadHover(false); return }
+        const image = document.querySelector('[data-pet-normal-art]')
+        if (!image) { cancelHeadHover(true); return }
+        const bounds = image.getBoundingClientRect()
+        const fullBody = image.getAttribute('data-pet-normal-art') === 'full-body'
+        const inside = event.clientX >= bounds.left + bounds.width * 0.25 && event.clientX <= bounds.right - bounds.width * 0.25 && event.clientY >= bounds.top && event.clientY <= bounds.top + bounds.height * (fullBody ? 0.34 : 0.45)
+        if (!inside) { cancelHeadHover(true); return }
+        if (interaction.current.asleep || interaction.current.reaction || headHover.current.consumed || headHover.current.timer) return
+        headHover.current.timer = window.setTimeout(function () {
+          headHover.current.timer = null
+          headHover.current.consumed = true
+          if (drag.current || interaction.current.asleep || interaction.current.reaction) return
+          pokes.current = { count: 0, last: null, first: null }
+          showReaction('pet')
+          armIdle()
+        }, HEAD_DWELL_MS)
+      }
 
       function armIdle() {
         if (specialMode) return
@@ -395,7 +435,7 @@ window.__ModuleLoader__.load({
         idleTimer.current = window.setTimeout(function () {
           idleTimer.current = null
           setReaction(null)
-          pokes.current = { count: 0, last: null }
+          pokes.current = { count: 0, last: null, first: null }
           setAsleep(true)
         }, IDLE_MS)
       }
@@ -421,13 +461,14 @@ window.__ModuleLoader__.load({
         return function () {
           if (unsubscribe) unsubscribe()
           disarmIdle()
-          if (bonkTimer.current) window.clearTimeout(bonkTimer.current)
+          cancelHeadHover(true)
           if (reactionTimer.current) window.clearTimeout(reactionTimer.current)
         }
       }, [])
 
       React.useEffect(function () {
         function onMove(event) {
+          updateHeadHover(event)
           const active = drag.current
           if (!active || event.pointerId !== active.pointerId) return
           if (window.desktopPet) {
@@ -458,7 +499,7 @@ window.__ModuleLoader__.load({
           setTilt(0)
           if (event.type === 'pointercancel') { armIdle(); return }
           if (active.moved) {
-            pokes.current = { count: 0, last: null }
+            pokes.current = { count: 0, last: null, first: null }
             if (active.last) {
               const saved = readStore()
               saved.pos = active.last
@@ -472,26 +513,20 @@ window.__ModuleLoader__.load({
             }
             if (specialMode) return
             setAsleep(false)
+            if (interaction.current.asleep) { armIdle(); return }
             setPulse(function (n) { return n + 1 })
-            if (bonkTimer.current) window.clearTimeout(bonkTimer.current)
             if (reactionTimer.current) window.clearTimeout(reactionTimer.current)
             const now = Date.now()
             const streak = pokes.current
-            streak.count = streak.last !== null && now - streak.last <= POKE_WINDOW_MS ? streak.count + 1 : 1
+            const rapid = streak.last !== null && now - streak.last <= POKE_WINDOW_MS && now - streak.first <= POKE_BURST_MS
+            streak.count = rapid ? streak.count + 1 : 1
+            streak.first = rapid ? streak.first : now
             streak.last = now
-            const nextReaction = streak.count >= 3 ? 'angry' : streak.count === 2 ? 'annoyed' : active.head ? 'pet' : null
-            setReaction(nextReaction)
-            if (nextReaction) {
-              reactionTimer.current = window.setTimeout(function () {
-                reactionTimer.current = null
-                pokes.current = { count: 0, last: null }
-                setReaction(null)
-              }, REACTION_MS)
-            } else {
-              bonkTimer.current = window.setTimeout(function () {
-                bonkTimer.current = null
-                setStateIndex(function (i) { return (i + 1) % (form.states.filter(function (state) { return !state.animation }).length) })
-              }, BONK_MS)
+            const nextReaction = streak.count >= 5 ? 'angry' : streak.count >= 3 ? 'annoyed' : null
+            if (nextReaction) showReaction(nextReaction)
+            else {
+              setReaction(null)
+              setStateIndex(function (i) { return (i + 1) % form.states.filter(function (state) { return !state.animation }).length })
             }
           }
           armIdle()
@@ -499,7 +534,9 @@ window.__ModuleLoader__.load({
         function onPreviewCaught() {
           if (sequenceRef.current.discover && sequenceRef.current.step <= 3) setSequenceStep(4)
         }
+        function onPointerOut(event) { if (!event.relatedTarget) cancelHeadHover(true) }
         function onBlur() {
+          cancelHeadHover(true)
           if (drag.current) onUp({ type: 'pointercancel', pointerId: drag.current.pointerId })
         }
         function onResize() {
@@ -512,6 +549,7 @@ window.__ModuleLoader__.load({
           }
           setFacing(facingFor(next))
         }
+        window.addEventListener('pointerout', onPointerOut)
         window.addEventListener('pointermove', onMove)
         window.addEventListener('pointerup', onUp)
         window.addEventListener('pointercancel', onUp)
@@ -519,6 +557,7 @@ window.__ModuleLoader__.load({
         window.addEventListener('blur', onBlur)
         window.addEventListener('dsh-pet:peek-caught', onPreviewCaught)
         return function () {
+          window.removeEventListener('pointerout', onPointerOut)
           window.removeEventListener('pointermove', onMove)
           window.removeEventListener('pointerup', onUp)
           window.removeEventListener('pointercancel', onUp)
@@ -532,8 +571,10 @@ window.__ModuleLoader__.load({
         if (event.button !== 0 && event.button != null) return
         if (drag.current) return
         event.preventDefault()
+        const wasHead = !!(headHover.current.timer || headHover.current.consumed)
+        cancelHeadHover(false)
+        headHover.current.consumed = wasHead
         disarmIdle()
-        const bounds = event.currentTarget.getBoundingClientRect()
         if (window.desktopPet) {
           window.desktopPet.beginDrag()
           event.currentTarget.setPointerCapture(event.pointerId)
@@ -542,7 +583,6 @@ window.__ModuleLoader__.load({
           pointerId: event.pointerId,
           screenX: event.screenX,
           screenY: event.screenY,
-          head: event.clientY < bounds.top + SIZE * 0.45,
           startX: event.clientX,
           startY: event.clientY,
           originX: posRef.current.x,
