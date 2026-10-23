@@ -1,0 +1,48 @@
+{
+  "name": "dsh-pet-desktop",
+  "version": "0.2.0",
+  "description": "独立运行在 Windows 桌面的互动桌宠",
+  "author": "YG",
+  "license": "MIT",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "npm run build && electron .",
+    "test": "node --test test/*.test.cjs",
+    "dist:win": "npm run build && electron-builder --win zip --x64",
+    "test:desktop": "npm run build && node test/desktop-smoke.mjs"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.25.12",
+    "playwright-core": "1.56.1"
+  },
+  "build": {
+    "appId": "com.rudong1.dsh-pet",
+    "productName": "DSH Pet",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "window-state.cjs",
+      "dist/**/*"
+    ],
+    "win": {
+      "target": "zip",
+      "signAndEditExecutable": false
+    },
+    "artifactName": "dsh-pet-desktop-${version}-windows-${arch}.${ext}"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rudong1/dsh-pet.git"
+  }
+}

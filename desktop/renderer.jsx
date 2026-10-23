@@ -1,0 +1,26 @@
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+const root = createRoot(document.getElementById('root'))
+// Adapt the existing DSH client entrypoint without a running DSH server.
+window.__ModuleLoader__ = {
+  load(spec) {
+    const plugin = spec.factory(name => {
+      if (name === 'react') return React
+      throw new Error('Unsupported desktop module: ' + name)
+    })
+    plugin.apply({ slots: {
+      inject(name, callback) { if (name === 'shell.overlay') callback() },
+      register(options, Pet) { root.render(React.createElement(Pet)) },
+    } })
+  },
+}
+let interactive = false
+function hitTest(event) {
+  const pet = document.querySelector('#root > div')
+  const rect = (pet?.querySelector('img') || pet)?.getBoundingClientRect()
+  const next = !!rect && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom
+  if (next !== interactive) { interactive = next; window.desktopPet?.setInteractive(next) }
+}
+window.addEventListener('mousemove', hitTest)
+window.addEventListener('contextmenu', event => { event.preventDefault(); window.desktopPet?.showMenu() })
+window.addEventListener('blur', () => { window.desktopPet?.endDrag(); interactive = false; window.desktopPet?.setInteractive(false) })

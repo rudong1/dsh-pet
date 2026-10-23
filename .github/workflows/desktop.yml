@@ -1,0 +1,30 @@
+name: Windows desktop pet
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['desktop/**', 'client.js', 'assets/**', '.github/workflows/desktop.yml']
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:desktop
+      - run: npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-pet-windows-x64
+          path: desktop/release/*.zip
+          if-no-files-found: error

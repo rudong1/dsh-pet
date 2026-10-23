@@ -174,7 +174,9 @@ window.__ModuleLoader__.load({
       if (visit) return visit
       const saved = readStore()
       const count = (Number(saved.count) || 0) + 1
-      visit = { count: count, formIndex: (count - 1) % FORMS.length }
+      const desktopForm = window.desktopPet && new URLSearchParams(window.location.search).get('form')
+      const selected = FORMS.findIndex(function (form) { return form.id === desktopForm })
+      visit = { count: count, formIndex: selected >= 0 ? selected : (count - 1) % FORMS.length }
       saved.count = count
       writeStore(saved)
       return visit
@@ -320,6 +322,7 @@ window.__ModuleLoader__.load({
       const form = FORMS[info.formIndex]
 
       const [pos, setPos] = React.useState(function () {
+        if (window.desktopPet) return { x: 130, y: 190 }
         const saved = readStore().pos
         if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') return clamp(saved)
         return { x: EDGE, y: 140 }
@@ -371,6 +374,11 @@ window.__ModuleLoader__.load({
         function onMove(event) {
           const active = drag.current
           if (!active || event.pointerId !== active.pointerId) return
+          if (window.desktopPet) {
+            if (Math.abs(event.screenX - active.screenX) > 3 || Math.abs(event.screenY - active.screenY) > 3) active.moved = true
+            if (active.moved) window.desktopPet.moveDrag()
+            return
+          }
           const next = clamp({
             x: active.originX + event.clientX - active.startX,
             y: active.originY + event.clientY - active.startY,
@@ -389,6 +397,7 @@ window.__ModuleLoader__.load({
           const active = drag.current
           if (!active || event.pointerId !== active.pointerId) return
           drag.current = null
+          if (window.desktopPet) window.desktopPet.endDrag()
           setDragging(false)
           setTilt(0)
           if (event.type === 'pointercancel') { armIdle(); return }
@@ -425,7 +434,11 @@ window.__ModuleLoader__.load({
           }
           armIdle()
         }
+        function onBlur() {
+          if (drag.current) onUp({ type: 'pointercancel', pointerId: drag.current.pointerId })
+        }
         function onResize() {
+          if (window.desktopPet) return
           const next = clamp(posRef.current)
           if (next.x !== posRef.current.x || next.y !== posRef.current.y) {
             posRef.current = next
@@ -437,11 +450,13 @@ window.__ModuleLoader__.load({
         window.addEventListener('pointerup', onUp)
         window.addEventListener('pointercancel', onUp)
         window.addEventListener('resize', onResize)
+        window.addEventListener('blur', onBlur)
         return function () {
           window.removeEventListener('pointermove', onMove)
           window.removeEventListener('pointerup', onUp)
           window.removeEventListener('pointercancel', onUp)
           window.removeEventListener('resize', onResize)
+          window.removeEventListener('blur', onBlur)
         }
       }, [])
 
@@ -451,8 +466,14 @@ window.__ModuleLoader__.load({
         event.preventDefault()
         disarmIdle()
         const bounds = event.currentTarget.getBoundingClientRect()
+        if (window.desktopPet) {
+          window.desktopPet.beginDrag()
+          event.currentTarget.setPointerCapture(event.pointerId)
+        }
         drag.current = {
           pointerId: event.pointerId,
+          screenX: event.screenX,
+          screenY: event.screenY,
           head: event.clientY < bounds.top + SIZE * 0.45,
           startX: event.clientX,
           startY: event.clientY,
