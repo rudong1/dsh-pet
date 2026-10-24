@@ -7,6 +7,8 @@ const { helpOptions } = require('./help.cjs')
 const { WIDTH, HEIGHT, fitPosition, readPreferences } = require('./window-state.cjs')
 let win, tray, updates, preferences, preferencesPath, dragging, quitting = false, helpOpen = false, specialActive = null
 
+const SPECIALS = { claude: { label: '伪装 Claude', form: 'mint', state: 'claude' }, work: { label: '工作ing', form: 'alt', state: 'peek' }, confess: { label: '表白', form: 'alt', state: 'confess' }, ha: { label: '哈~', form: 'mint', state: 'ha' } }
+
 function savePreferences() {
   if (win && !win.isDestroyed()) Object.assign(preferences, win.getBounds())
   try {
@@ -15,7 +17,7 @@ function savePreferences() {
   } catch (error) { console.error('Could not save desktop pet preferences:', error.message) }
 }
 function showPet() { win.showInactive(); refreshMenu() }
-function loadPet(special = null) { win.setIgnoreMouseEvents(true, { forward: true }); win.loadFile(path.join(__dirname, 'dist/index.html'), { query: { form: preferences.form, ...(special ? { preview: special === 'work' ? 'peek' : 'confess', special } : {}) } }) }
+function loadPet(special = null) { win.setIgnoreMouseEvents(true, { forward: true }); win.loadFile(path.join(__dirname, 'dist/index.html'), { query: { form: preferences.form, ...(special ? { preview: SPECIALS[special].state, special } : {}) } }) }
 function chooseForm(form) { specialActive = null; preferences.form = form; dragging = null; savePreferences(); loadPet(); showPet() }
 function currentFacing() {
   const bounds = win.getBounds()
@@ -47,10 +49,10 @@ function petMenuItems() {
       { label: '一形态（mint）', type: 'radio', checked: preferences.form === 'mint', click: () => chooseForm('mint') },
       { label: '二形态（alt）', type: 'radio', checked: preferences.form === 'alt', click: () => chooseForm('alt') },
     ] },
-    ...[['work', '工作ing'], ['confess', '表白']].map(([mode, label]) => ({
-      label, type: 'checkbox', checked: specialActive === mode, click: () => {
+    ...Object.entries(SPECIALS).filter(([, action]) => action.form === preferences.form).map(([mode, action]) => ({
+      label: action.label, type: 'checkbox', checked: specialActive === mode, click: () => {
         specialActive = specialActive === mode ? null : mode
-        preferences.form = 'alt'; dragging = null
+        preferences.form = action.form; dragging = null
         savePreferences(); loadPet(specialActive); showPet()
       },
     })),
@@ -118,6 +120,7 @@ else {
     ipcMain.handle('pet:get-facing', event => {
       if (win && !win.isDestroyed() && event.sender === win.webContents) return currentFacing()
     })
+    handle('pet:exit-special', () => { if (specialActive) chooseForm(preferences.form) })
     handle('pet:menu', () => { refreshMenu().popup({ window: win }) })
     app.on('before-quit', () => { quitting = true; savePreferences() })
     updates = createUpdates({

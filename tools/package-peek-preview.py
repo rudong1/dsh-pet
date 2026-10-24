@@ -10,7 +10,10 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', default='alt-peek-preview')
-name = parser.parse_args().name
+parser.add_argument('--action', choices=['peek', 'confess', 'ha', 'claude'], default='peek')
+parser.add_argument('--only-selected', action='store_true', help='Embed only the selected story for a smaller standalone preview')
+args = parser.parse_args()
+name = args.name
 if not re.fullmatch(r'[A-Za-z0-9_-]+', name):
     raise SystemExit('Preview name must contain only letters, digits, hyphens or underscores')
 
@@ -19,15 +22,20 @@ dist = root / 'desktop' / 'dist'
 output = root / 'desktop' / 'release' / 'drafts'
 output.mkdir(parents=True, exist_ok=True)
 html = (dist / 'preview.html').read_text(encoding='utf-8')
+html = html.replace('data-preview="peek"', 'data-preview="' + args.action + '"')
+if args.only_selected:
+    html = html.replace('data-preview="' + args.action + '"', 'data-preview="' + args.action + '" data-only-action="' + args.action + '"')
 nonce = 'local-peek-preview'
 html = html.replace("script-src 'self'", "script-src 'nonce-" + nonce + "'")
 for filename in ['preview.js', 'renderer.js', 'client.js']:
     source = (dist / filename).read_text(encoding='utf-8')
     if filename == 'renderer.js':
         pattern = r'new URL\((.+?),window\.location\.href\)\.href'
-        images = {directory.name + '/' + p.name: 'data:image/png;base64,' + base64.b64encode(p.read_bytes()).decode('ascii') for directory in [dist / 'alt-peek', dist / 'alt-confess'] for p in directory.glob('*.png')}
-        if len(images) != 15:
-            raise SystemExit('Expected all 15 special-action images')
+        story_dirs = {'peek': ('alt-peek', 8), 'confess': ('alt-confess', 7), 'ha': ('mint-ha', 5), 'claude': ('mint-claude', 6)}
+        selected_dirs = [story_dirs[args.action]] if args.only_selected else list(story_dirs.values())
+        images = {directory.name + '/' + p.name: 'data:image/png;base64,' + base64.b64encode(p.read_bytes()).decode('ascii') for directory in [dist / directory for directory, count in selected_dirs] for p in directory.glob('*.png')}
+        if len(images) != sum(count for directory, count in selected_dirs):
+            raise SystemExit('Missing special-action images')
         source, count = re.subn(pattern, lambda m: '(' + json.dumps(images) + ')[' + m.group(1) + ']', source)
         if count != 1:
             raise SystemExit('Frame URL anchor changed; inspect renderer bundle')

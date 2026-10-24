@@ -33,6 +33,8 @@ window.__ModuleLoader__.load({
     // One form for now, so every visit shows the supplied artwork.
     // Add more entries here to alternate by visit parity again.
     const ANIMATIONS = window.__DSH_PET_ANIMATIONS__ || {}
+    const MINT_CLAUDE_SEQUENCE = ANIMATIONS.mintClaude
+    const MINT_HA_SEQUENCE = ANIMATIONS.mintHa
     const CONFESS_SEQUENCE = ANIMATIONS.altConfess
     const PEEK_SEQUENCE = window.__DSH_PET_ANIMATIONS__ && window.__DSH_PET_ANIMATIONS__.altPeek
     const FORMS = [
@@ -74,6 +76,8 @@ window.__ModuleLoader__.load({
               { t: '先吃饭吧', align: 'left', offset: 16 },
             ],
           },
+          ...(MINT_CLAUDE_SEQUENCE ? [{ id: 'claude', animation: 'mintClaude', captionTone: 'blue', captionGap: 12 }] : []),
+          ...(MINT_HA_SEQUENCE ? [{ id: 'ha', animation: 'mintHa', captionTone: 'blue', captionGap: 12 }] : []),
         ],
         reactions: {
           pet: { id: 'pet', art: 'bright', caption: '嘿嘿，摸摸头~\n再摸一下也可以哦', eyes: 'happy', mouth: 'big' },
@@ -146,6 +150,8 @@ window.__ModuleLoader__.load({
       '@keyframes dsh-pet-pat{0%,100%{transform:scale(1)}50%{transform:translateY(3px) scale(1.05,0.95)}}',
       '@keyframes dsh-pet-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px) rotate(-3deg)}40%,80%{transform:translateX(5px) rotate(3deg)}}',
       '@keyframes dsh-pet-bonk{0%{transform:translateY(0) scale(1,1)}22%{transform:translateY(4px) scale(1.12,0.84)}48%{transform:translateY(-3px) scale(0.94,1.08)}72%{transform:translateY(1px) scale(1.03,0.97)}100%{transform:translateY(0) scale(1,1)}}',
+      '@keyframes dsh-pet-reading{0%,100%{transform:rotate(-2deg) translateY(0)}25%{transform:rotate(0deg) translateY(-2px)}50%{transform:rotate(2deg) translateY(0)}75%{transform:rotate(0deg) translateY(-1px)}}',
+      '@keyframes dsh-pet-ha-breath{0%{opacity:0;transform:scale(.4)}30%{opacity:.7}100%{opacity:0;transform:translate(-18px,8px) scale(1.8)}}',
       '@keyframes dsh-pet-puff{0%{opacity:0;transform:translate(0,0) scale(0.4)}30%{opacity:0.65}100%{opacity:0;transform:translate(30px,-14px) scale(1.9)}}',
       '@media (prefers-reduced-motion: reduce){',
       '.dsh-pet-motion{animation:none !important}',
@@ -156,6 +162,7 @@ window.__ModuleLoader__.load({
     // Caption colour sets; a state picks one with `captionTone`.
     const TONES = {
       blue: { color: '#1b4b9c', glow: 'rgba(120, 175, 255, 0.55)', shadow: 'rgba(16, 58, 143, 0.38)' },
+      orange: { color: '#c66b35', glow: 'rgba(244, 164, 97, 0.62)', shadow: 'rgba(129, 60, 18, 0.42)' },
       pink: { color: '#c3337a', glow: 'rgba(255, 148, 205, 0.62)', shadow: 'rgba(168, 24, 94, 0.42)' },
     }
 
@@ -305,30 +312,30 @@ window.__ModuleLoader__.load({
       const height = sequence.height
       const width = sequence.width
       return h('div', {
-        'data-pet-sprite': 'alt-peek',
+        'data-pet-sprite': props.animation,
         'data-sequence-frame': frame.name,
         role: 'img',
-        'aria-label': '二形态：' + frame.name,
+        'aria-label': props.formLabel + '：' + frame.name,
         style: { position: 'absolute', width: width + 'px', height: height + 'px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' },
       }, h('div', {
         className: 'dsh-pet-sequence-motion',
-        style: { position: 'relative', width: '100%', height: '100%', transformOrigin: '50% 85%', transform: 'translateY(' + frame.dy + 'px) rotate(' + frame.rotate + 'deg) scale(' + frame.scale + ')', transition: 'transform 650ms ease-in-out' },
+        style: { position: 'relative', width: '100%', height: '100%', transformOrigin: '50% 85%', transform: 'translateY(' + frame.dy + 'px) rotate(' + frame.rotate + 'deg) scale(' + frame.scale + ')', transition: 'transform 650ms ease-in-out', animation: frame.motion || 'none' },
       }, sequence.frames.map(function (pose, index) {
         return h('div', {
           key: pose.name,
           className: 'dsh-pet-sequence-layer',
           style: { position: 'absolute', inset: 0, backgroundImage: 'url("' + pose.src + '")', backgroundRepeat: 'no-repeat', backgroundSize: 'contain', backgroundPosition: 'center', opacity: props.step === index ? 1 : 0, transition: 'opacity ' + sequence.transitionMs + 'ms ease-in-out' },
         })
-      }), frame.breath ? h('span', {
+      }), frame.thought ? h('span', { 'aria-hidden': true, style: { position: 'absolute', right: '12%', top: '3%', color: '#ffe6c4', fontSize: '22px', textShadow: '0 0 3px #fff', pointerEvents: 'none' } }, '○ ◯') : null, frame.breath ? h('span', {
         key: 'breath',
         className: 'dsh-pet-motion',
         'aria-hidden': true,
-        style: { position: 'absolute', pointerEvents: 'none', left: '51%', top: '24%', width: '30px', height: '16px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.8), rgba(255,255,255,0))', filter: 'blur(2px)', animation: 'dsh-pet-puff 1100ms ease-out' },
+        style: { position: 'absolute', pointerEvents: 'none', left: frame.breathLeft || '51%', top: frame.breathTop || '24%', width: '30px', height: '16px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.8), rgba(255,255,255,0))', filter: 'blur(2px)', animation: (frame.breathAnimation || 'dsh-pet-puff') + ' 1100ms ease-out' },
       }) : null))
     }
 
     function PetArt(props) {
-      if (ANIMATIONS[props.state.animation]) return h(SequenceArt, { step: props.sequenceStep, sequence: ANIMATIONS[props.state.animation] })
+      if (ANIMATIONS[props.state.animation]) return h(SequenceArt, { step: props.sequenceStep, sequence: ANIMATIONS[props.state.animation], animation: props.state.animation, formLabel: props.form.id === 'mint' ? '一形态' : '二形态' })
       const src = ART[props.form.id + '/' + props.state.id] || ART[props.form.id + '/' + props.state.art] || ART['mint/' + props.state.id]
       if (src) {
         // Render at the scaled size instead of scaling a transform: transform would
@@ -370,9 +377,9 @@ window.__ModuleLoader__.load({
       const [dragging, setDragging] = React.useState(false)
       const [stateIndex, setStateIndex] = React.useState(function () {
         const preview = new URLSearchParams(window.location.search).get('preview')
-        return form.id === 'alt' && (preview === 'peek' || preview === 'confess') ? Math.max(0, form.states.findIndex(function (state) { return state.id === preview })) : 0
+        return Math.max(0, form.states.findIndex(function (state) { return state.animation && state.id === preview }))
       })
-      const specialMode = form.id === 'alt' && ['work', 'confess'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
+      const specialMode = ['work', 'confess', 'ha', 'claude'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
       const [sequenceStep, setSequenceStep] = React.useState(0)
       const [sequenceDone, setSequenceDone] = React.useState(false)
       const sequenceRef = React.useRef({ active: false, step: 0 })
@@ -511,7 +518,10 @@ window.__ModuleLoader__.load({
               armIdle()
               return
             }
-            if (specialMode) return
+            if (specialMode) {
+              if (sequenceRef.current.last && window.desktopPet && window.desktopPet.exitSpecial) window.desktopPet.exitSpecial()
+              return
+            }
             setAsleep(false)
             if (interaction.current.asleep) { armIdle(); return }
             setPulse(function (n) { return n + 1 })
@@ -596,7 +606,7 @@ window.__ModuleLoader__.load({
       const selectedState = form.states[stateIndex % form.states.length]
       const currentSequence = ANIMATIONS[selectedState.animation]
       const sequenceActive = !!(currentSequence && !asleep && !reaction)
-      sequenceRef.current = { active: sequenceActive, discover: sequenceActive && selectedState.animation === 'altPeek', step: sequenceStep }
+      sequenceRef.current = { active: sequenceActive, discover: sequenceActive && selectedState.animation === 'altPeek', step: sequenceStep, last: sequenceActive && sequenceStep === currentSequence.frames.length - 1 }
       React.useEffect(function () {
         if (sequenceActive) { setSequenceStep(0); setSequenceDone(false) }
       }, [sequenceActive, currentSequence])
@@ -608,7 +618,7 @@ window.__ModuleLoader__.load({
         }, currentSequence.frames[sequenceStep].duration)
         return function () { window.clearTimeout(timer) }
       }, [sequenceActive, currentSequence, sequenceStep, sequenceDone])
-      const current = asleep ? form.idleState : reaction ? Object.assign({ captionTone: form.id === 'alt' ? 'pink' : 'blue', captionGap: form.id === 'alt' ? 58 : 2 }, form.reactions[reaction]) : sequenceActive ? Object.assign({}, selectedState, { caption: currentSequence.frames[sequenceStep].caption }) : selectedState
+      const current = asleep ? form.idleState : reaction ? Object.assign({ captionTone: form.id === 'alt' ? 'pink' : 'blue', captionGap: form.id === 'alt' ? 58 : 2 }, form.reactions[reaction]) : sequenceActive ? Object.assign({}, selectedState, { caption: currentSequence.frames[sequenceStep].caption, captionTone: currentSequence.frames[sequenceStep].captionTone || selectedState.captionTone }) : selectedState
       const tone = TONES[current.captionTone] || TONES.blue
       const mirrored = facing === 'left'
 

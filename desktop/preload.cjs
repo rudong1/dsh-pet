@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('desktopPet', {
     ipcRenderer.on('pet:facing', listener)
     return () => ipcRenderer.removeListener('pet:facing', listener)
   },
+  exitSpecial: () => ipcRenderer.send('pet:exit-special'),
   showMenu: () => ipcRenderer.send('pet:menu'),
 })

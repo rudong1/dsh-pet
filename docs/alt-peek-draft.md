@@ -17,3 +17,7 @@
 `npm test --prefix desktop` 验证更新和窗口设置；`npm run test:desktop --prefix desktop` 验证真实 Electron 菜单、全部表白剧情、两个特殊动作保持/退出及原有互动。Linux 需要 Xvfb 显示环境。
 
 运行桌面 build 后，`python tools/package-peek-preview.py` 可导出离线动作预览 HTML/ZIP（只预览工作ing）。`desktop/test/peek-smoke.mjs` 验证透明帧、台词、提前发现、镜像文字和拖动。
+
+## v0.4.4 点击恢复修复
+
+特殊动作到最后一帧后，左键点击人物即可恢复二形态常态，并同步清除菜单勾选；拖动不会退出。原有右键同项开关仍有效。此修复纳入用户授权发布的 v0.4.4。
