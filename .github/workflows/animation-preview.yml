@@ -16,6 +16,6 @@ jobs:
         with:
           name: alt-peek-animation-preview
           path: |
-            preview/mint-ha-preview.html
+            preview/mint-claude-preview.zip
             preview/README.txt
           if-no-files-found: error
