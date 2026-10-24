@@ -7,7 +7,7 @@ const { helpOptions } = require('./help.cjs')
 const { WIDTH, HEIGHT, fitPosition, readPreferences } = require('./window-state.cjs')
 let win, tray, updates, preferences, preferencesPath, dragging, quitting = false, helpOpen = false, specialActive = null
 
-const SPECIALS = { claude: { label: '伪装 Claude', form: 'mint', state: 'claude' }, work: { label: '工作ing', form: 'alt', state: 'peek' }, confess: { label: '表白', form: 'alt', state: 'confess' }, ha: { label: '哈~', form: 'mint', state: 'ha' } }
+const SPECIALS = { claude: { label: '伪装 Claude', form: 'mint', state: 'claude' }, work: { label: '工作ing', form: 'alt', state: 'peek' }, confess: { label: '表白', form: 'alt', state: 'confess' }, ha: { label: '哈~', form: 'mint', state: 'ha' }, rice: { label: '要饭', form: 'mint', state: 'rice' } }
 
 function savePreferences() {
   if (win && !win.isDestroyed()) Object.assign(preferences, win.getBounds())

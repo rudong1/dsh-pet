@@ -1,4 +1,5 @@
 const actions = {
+  rice: { form: 'mint', special: 'rice', title: '要饭 · 一形态', detail: '捧碗讨饭 → 主人给苹果 → 委屈发愣 → 大肥鱼开闹' },
   claude: { form: 'mint', special: 'claude', title: '伪装 Claude · 一形态', detail: '看书晃脑 → 联想 Claude → 东张西望 → 喜爱地抱紧' },
   peek: { form: 'alt', special: 'work', title: '工作ing · 二形态', detail: '盯着你 → 偷偷哈气 → 被发现 → 害羞' },
   confess: { form: 'alt', special: 'confess', title: '表白 · 二形态', detail: '问候 → 表白 → 害羞 → 递信' },
@@ -42,7 +43,7 @@ document.getElementById('right').onclick = () => face('right')
 document.getElementById('replay').onclick = () => navigate(selected)
 document.getElementById('action').onchange = event => navigate(event.target.value)
 document.getElementById('caught').onclick = () => window.dispatchEvent(new Event('dsh-pet:peek-caught'))
-const labels = { read: '看书摇头晃脑', imagine: '联想中……', 'orange-book': 'Claude 的另一册书', wonder: '疑惑地抱着小大肥鱼', 'look-left': '看看左边', 'look-right': '看看右边',  watch: '偷偷看着你', smile: '藏不住的小表情', lean: '慢慢靠近', puff: '轻轻哈气', caught: '被发现了！', avert: '害羞地移开视线', bashful: '不好意思地笑', settle: '恢复陪伴', ask: '问中午吃什么', appear: '小鲸鱼出现', bend: '弯腰凑近', hug: '抱着小鲸鱼', call: '问候', concern: '关心你', declaration: '听到表白', surprise: '惊讶', question: '确认心意', calm: '深呼吸', letter: '抱着信', offer: '递信给你' }
+const labels = { beg: '捧碗讨饭', plead: '再求一碗大米饭', receive: '收到苹果', stare: '盯着苹果发愣', fuss: '站起来闹', tantrum: '坐下继续闹', read: '看书摇头晃脑', imagine: '联想中……', 'orange-book': 'Claude 的另一册书', wonder: '疑惑地抱着小大肥鱼', 'look-left': '看看左边', 'look-right': '看看右边',  watch: '偷偷看着你', smile: '藏不住的小表情', lean: '慢慢靠近', puff: '轻轻哈气', caught: '被发现了！', avert: '害羞地移开视线', bashful: '不好意思地笑', settle: '恢复陪伴', ask: '问中午吃什么', appear: '小鲸鱼出现', bend: '弯腰凑近', hug: '抱着小鲸鱼', call: '问候', concern: '关心你', declaration: '听到表白', surprise: '惊讶', question: '确认心意', calm: '深呼吸', letter: '抱着信', offer: '递信给你' }
 new MutationObserver(() => {
   const name = document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame
   document.getElementById('phase').textContent = (selected === 'claude' && name === 'hug' ? '喜爱地抱紧小大肥鱼' : labels[name]) || (mode === 'normal' ? '已恢复常态' : '准备播放…')

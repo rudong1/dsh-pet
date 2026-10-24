@@ -28,7 +28,7 @@ try {
     dialog.showMessageBox = async (parent, options) => { Menu.testHelp = options; return { response: 0 } }
   })
   await page.evaluate(() => window.desktopPet.showMenu())
-  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '伪装 Claude', '哈~', '检查更新', '帮助', '退出'])
+  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '伪装 Claude', '哈~', '要饭', '检查更新', '帮助', '退出'])
   async function menuClick(label) {
     await app.evaluate(({ Menu }, label) => {
       const item = Menu.testMenu.items.find(item => item.label === label)
@@ -72,8 +72,8 @@ try {
       item.click(item)
     }, label)
     await state(form, initial)
-    const specialLabels = await app.evaluate(({ Menu }) => Menu.testMenu.items.filter(i => ['伪装 Claude', '哈~', '工作ing', '表白'].includes(i.label)).map(i => i.label))
-    assert.deepEqual(specialLabels, form === 'mint' ? ['伪装 Claude', '哈~'] : ['工作ing', '表白'])
+    const specialLabels = await app.evaluate(({ Menu }) => Menu.testMenu.items.filter(i => ['伪装 Claude', '哈~', '要饭', '工作ing', '表白'].includes(i.label)).map(i => i.label))
+    assert.deepEqual(specialLabels, form === 'mint' ? ['伪装 Claude', '哈~', '要饭'] : ['工作ing', '表白'])
     await page.clock.install()
     const bounds = await page.locator('#root img').boundingBox()
     const head = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height * 0.2 }
@@ -172,6 +172,23 @@ try {
 
   await selectForm('一形态（mint）')
   await state('mint', 'peace')
+  await menuClick('要饭')
+  await state('mint', 'rice')
+  await page.clock.resume()
+  for (const name of ['beg', 'plead', 'receive', 'stare', 'fuss', 'tantrum']) {
+    await page.waitForFunction(n => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === n, name, { timeout: 10000 })
+    assert.equal(await page.locator('[data-pet-sprite]').getAttribute('data-pet-sprite'), 'mintRice')
+  }
+  await page.clock.runFor(120010)
+  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'tantrum')
+  await page.mouse.click(210, 270)
+  await state('mint', 'peace')
+  assert.equal(await app.evaluate(({ Menu }) => Menu.testMenu.items.find(i => i.label === '要饭').checked), false)
+  await menuClick('要饭')
+  await state('mint', 'rice')
+  await menuClick('要饭')
+  await state('mint', 'peace')
+  console.log('PASS 要饭 asks for rice, receives an apple, fusses, holds and restores mint')
   await menuClick('伪装 Claude')
   await state('mint', 'claude')
   await page.clock.resume()

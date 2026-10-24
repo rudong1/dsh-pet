@@ -1,5 +1,6 @@
 // Add future special interactions here; the Help menu reads this list directly.
 const specialFeatures = [
+  { title: '要饭（一形态）', detail: '捧碗讨大米饭，收到主人给的苹果后委屈地闹起来。结束保持闹腾的表情，点击人物或再次选择菜单恢复常态。' },
   { title: '伪装 Claude（一形态）', detail: '摇头晃脑看书，联想到 Claude 看另一册书，抱着橙色小大肥鱼东张西望，最后喜爱地抱紧。结束后点击人物或再次选择菜单恢复常态。' },
   { title: '哈~（一形态）', detail: '右键选择“哈~”：问午饭、遇见小鲸鱼、弯腰哈气，最后抱起它。结束保持最后一帧；点击人物或再次选择菜单恢复一形态常态。' },
   { title: '表白（二形态）', detail: '右键选择“表白”播放剧情，结束后保持递信的最后一帧，左键点击人物或再次选择菜单恢复常态。两个特殊动作互相切换；保持期间可拖动，不会闲置睡眠。' },

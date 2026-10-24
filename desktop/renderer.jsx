@@ -1,3 +1,4 @@
+import { mintRiceSequence } from './mint-rice-sequence.mjs'
 import { mintClaudeSequence } from './mint-claude-sequence.mjs'
 import { mintHaSequence } from './mint-ha-sequence.mjs'
 import { confessSequence } from './confess-sequence.mjs'
@@ -5,7 +6,7 @@ import { peekSequence } from './peek-sequence.mjs'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 const withSources = (sequence, directory) => ({ ...sequence, frames: sequence.frames.map(frame => ({ ...frame, src: new URL(directory + '/' + (frame.art || frame.name) + '.png', window.location.href).href })) })
-window.__DSH_PET_ANIMATIONS__ = { mintClaude: withSources(mintClaudeSequence, 'mint-claude'), mintHa: withSources(mintHaSequence, 'mint-ha'), altPeek: withSources(peekSequence, 'alt-peek'), altConfess: withSources(confessSequence, 'alt-confess') }
+window.__DSH_PET_ANIMATIONS__ = { mintRice: withSources(mintRiceSequence, 'mint-rice'), mintClaude: withSources(mintClaudeSequence, 'mint-claude'), mintHa: withSources(mintHaSequence, 'mint-ha'), altPeek: withSources(peekSequence, 'alt-peek'), altConfess: withSources(confessSequence, 'alt-confess') }
 const root = createRoot(document.getElementById('root'))
 // Adapt the existing DSH client entrypoint without a running DSH server.
 window.__ModuleLoader__ = {

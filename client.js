@@ -33,6 +33,7 @@ window.__ModuleLoader__.load({
     // One form for now, so every visit shows the supplied artwork.
     // Add more entries here to alternate by visit parity again.
     const ANIMATIONS = window.__DSH_PET_ANIMATIONS__ || {}
+    const MINT_RICE_SEQUENCE = ANIMATIONS.mintRice
     const MINT_CLAUDE_SEQUENCE = ANIMATIONS.mintClaude
     const MINT_HA_SEQUENCE = ANIMATIONS.mintHa
     const CONFESS_SEQUENCE = ANIMATIONS.altConfess
@@ -77,6 +78,7 @@ window.__ModuleLoader__.load({
             ],
           },
           ...(MINT_CLAUDE_SEQUENCE ? [{ id: 'claude', animation: 'mintClaude', captionTone: 'blue', captionGap: 12 }] : []),
+          ...(MINT_RICE_SEQUENCE ? [{ id: 'rice', animation: 'mintRice', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_HA_SEQUENCE ? [{ id: 'ha', animation: 'mintHa', captionTone: 'blue', captionGap: 12 }] : []),
         ],
         reactions: {
@@ -379,7 +381,7 @@ window.__ModuleLoader__.load({
         const preview = new URLSearchParams(window.location.search).get('preview')
         return Math.max(0, form.states.findIndex(function (state) { return state.animation && state.id === preview }))
       })
-      const specialMode = ['work', 'confess', 'ha', 'claude'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
+      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
       const [sequenceStep, setSequenceStep] = React.useState(0)
       const [sequenceDone, setSequenceDone] = React.useState(false)
       const sequenceRef = React.useRef({ active: false, step: 0 })

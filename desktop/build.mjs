@@ -9,6 +9,7 @@ await Promise.all([
   copyFile('preview.html', 'dist/preview.html'),
   copyFile('index.html', 'dist/index.html'),
   copyFile('../client.js', 'dist/client.js'),
+  cp('../assets/animations/mint-rice', 'dist/mint-rice', { recursive: true }),
   cp('../assets/animations/mint-claude', 'dist/mint-claude', { recursive: true }),
   cp('../assets/animations/mint-ha', 'dist/mint-ha', { recursive: true }),
   cp('../assets/animations/alt-confess', 'dist/alt-confess', { recursive: true }),
