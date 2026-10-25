@@ -17,7 +17,11 @@ const SPECIALS = {
   slack: { label: '摸鱼被抓', form: 'mint', state: 'slack' },
   parcel: { label: '鲸鱼快递', form: 'mint', state: 'parcel' },
   coffee: { label: '咖啡加油', form: 'alt', state: 'coffee' },
-  goodnight: { label: '晚安守候', form: 'alt', state: 'goodnight' }
+  goodnight: { label: '晚安守候', form: 'alt', state: 'goodnight' },
+  fishing: { label: '钓到惊喜', form: 'mint', state: 'fishing' },
+  dance: { label: '偷偷练舞', form: 'mint', state: 'dance' },
+  umbrella: { label: '雨天送伞', form: 'alt', state: 'umbrella' },
+  wish: { label: '星光许愿', form: 'alt', state: 'wish' }
 }
 
 function savePreferences() {

@@ -9,9 +9,16 @@ parser.add_argument('source',type=Path)
 parser.add_argument('output',type=Path)
 parser.add_argument('--columns',type=int,default=2)
 parser.add_argument('--rows',type=int,default=2)
+parser.add_argument('--reassign-island',action='append',default=[],metavar='LABEL:POSE',help='Assign an alpha component crossing a grid boundary to its intended zero-based pose')
 args=parser.parse_args()
 im=Image.open(args.source).convert('RGBA');a=np.asarray(im)[:,:,3]
 labels,n=label(a>32);sizes=np.bincount(labels.ravel());boxes=find_objects(labels)
+overrides={}
+for assignment in args.reassign_island:
+ component,pose=map(int,assignment.split(':'))
+ assert 0<component<=n and sizes[component]>=24,'Unknown or too-small alpha island: '+str(component)
+ assert 0<=pose<args.rows*args.columns,'Unknown pose: '+str(pose)
+ overrides[component]=pose
 def contours(mask):
  # Directed pixel-square boundaries, used only as SVG view clipping geometry.
  padded=np.pad(mask,1)
@@ -51,7 +58,8 @@ for row in range(args.rows):
   for idx,box in enumerate(boxes,1):
    if box is None or sizes[idx]<24:continue
    y,x=box;cx=(x.start+x.stop)/2;cy=(y.start+y.stop)/2
-   if min(args.columns-1,int(cx/im.width*args.columns))==col and min(args.rows-1,int(cy/im.height*args.rows))==row:ids.append(idx)
+   owner=overrides.get(idx,min(args.rows-1,int(cy/im.height*args.rows))*args.columns+min(args.columns-1,int(cx/im.width*args.columns)))
+   if owner==row*args.columns+col:ids.append(idx)
   assert ids and max(sizes[i] for i in ids)>im.width*im.height/(args.rows*args.columns)*.05,'Missing or merged actor at '+str((row,col))
   mask=np.isin(labels,ids)
   assert not any(np.any(e) for e in [mask[0],mask[-1],mask[:,0],mask[:,-1]]),'Actor touches image boundary: '+str((row,col))

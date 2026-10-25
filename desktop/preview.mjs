@@ -1,4 +1,9 @@
 const actions = {
+  fishing: { form: 'mint', special: 'fishing', title: '钓到惊喜 · 一形态', detail: '抛竿等待 → 用力拉竿 → 钓到小鲸鱼 → 抱回家' },
+  dance: { form: 'mint', special: 'dance', title: '偷偷练舞 · 一形态', detail: '准备音乐 → 向左摇摆 → 向右摇摆 → 被主人撞见' },
+  umbrella: { form: 'alt', special: 'umbrella', title: '雨天送伞 · 二形态', detail: '察觉下雨 → 撑开雨伞 → 邀请靠近 → 伞下陪伴' },
+  wish: { form: 'alt', special: 'wish', title: '星光许愿 · 二形态', detail: '捧星星罐 → 挑选星星 → 闭眼许愿 → 递给你' },
+
   slack: { form: 'mint', special: 'slack', title: '摸鱼被抓 · 一形态', detail: '打瞌睡 → 惊醒 → 装忙 → 卖萌' },
   parcel: { form: 'mint', special: 'parcel', title: '鲸鱼快递 · 一形态', detail: '等包裹 → 收到快递 → 拆出小鲸鱼 → 开心抱紧' },
   coffee: { form: 'alt', special: 'coffee', title: '咖啡加油 · 二形态', detail: '犯困 → 端咖啡 → 递给主人 → 加油打气' },
@@ -48,7 +53,7 @@ document.getElementById('right').onclick = () => face('right')
 document.getElementById('replay').onclick = () => navigate(selected)
 document.getElementById('action').onchange = event => navigate(event.target.value)
 document.getElementById('caught').onclick = () => window.dispatchEvent(new Event('dsh-pet:peek-caught'))
-const labels = { doze: '打瞌睡', awake: '被主人惊醒', study: '装作认真工作', sorry: '卖萌求放过', wait: '等快递', delivered: '快递到了', open: '拆出小鲸鱼', yawn: '有点困了', brew: '端来咖啡', cheer: '给你打气', fold: '准备毯子', tuck: '盖好毯子', night: '晚安，主人', refuse: '嫌弃苹果', hungry: '肚子先投降', bite: '偷偷尝一口', hide: '藏起苹果', share: '红着脸分你一口', beg: '捧碗讨饭', plead: '再求一碗大米饭', receive: '收到苹果', stare: '盯着苹果发愣', fuss: '站起来闹', tantrum: '坐下继续闹', read: '看书摇头晃脑', imagine: '联想中……', 'orange-book': 'Claude 的另一册书', wonder: '疑惑地抱着小大肥鱼', 'look-left': '看看左边', 'look-right': '看看右边',  watch: '偷偷看着你', smile: '藏不住的小表情', lean: '慢慢靠近', puff: '轻轻哈气', caught: '被发现了！', avert: '害羞地移开视线', bashful: '不好意思地笑', settle: '恢复陪伴', ask: '问中午吃什么', appear: '小鲸鱼出现', bend: '弯腰凑近', hug: '抱着小鲸鱼', call: '问候', concern: '关心你', declaration: '听到表白', surprise: '惊讶', question: '确认心意', calm: '深呼吸', letter: '抱着信', offer: '递信给你' }
+const labels = { 'cast': '抛竿等待', 'tug': '用力拉竿', 'splash': '钓到小鲸鱼', 'friend': '抱回家当朋友', 'ready': '准备音乐', 'dance-left': '向左摇摆', 'dance-right': '向右摇摆', 'seen': '被主人撞见', 'rain': '察觉下雨', 'unfold': '撑开雨伞', 'invite': '邀请靠近', 'shelter': '伞下陪伴', 'jar': '捧星星罐', 'choose': '挑选星星', 'wish': '闭眼许愿', 'gift': '把星星递给你', doze: '打瞌睡', awake: '被主人惊醒', study: '装作认真工作', sorry: '卖萌求放过', wait: '等快递', delivered: '快递到了', open: '拆出小鲸鱼', yawn: '有点困了', brew: '端来咖啡', cheer: '给你打气', fold: '准备毯子', tuck: '盖好毯子', night: '晚安，主人', refuse: '嫌弃苹果', hungry: '肚子先投降', bite: '偷偷尝一口', hide: '藏起苹果', share: '红着脸分你一口', beg: '捧碗讨饭', plead: '再求一碗大米饭', receive: '收到苹果', stare: '盯着苹果发愣', fuss: '站起来闹', tantrum: '坐下继续闹', read: '看书摇头晃脑', imagine: '联想中……', 'orange-book': 'Claude 的另一册书', wonder: '疑惑地抱着小大肥鱼', 'look-left': '看看左边', 'look-right': '看看右边',  watch: '偷偷看着你', smile: '藏不住的小表情', lean: '慢慢靠近', puff: '轻轻哈气', caught: '被发现了！', avert: '害羞地移开视线', bashful: '不好意思地笑', settle: '恢复陪伴', ask: '问中午吃什么', appear: '小鲸鱼出现', bend: '弯腰凑近', hug: '抱着小鲸鱼', call: '问候', concern: '关心你', declaration: '听到表白', surprise: '惊讶', question: '确认心意', calm: '深呼吸', letter: '抱着信', offer: '递信给你' }
 new MutationObserver(() => {
   const name = document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame
   document.getElementById('phase').textContent = ({ coffee: { offer: '递给主人' }, goodnight: { watch: '看时间' }, parcel: { hug: '开心抱紧小鲸鱼' }, claude: { hug: '喜爱地抱紧小大肥鱼' } }[selected]?.[name] || labels[name]) || (mode === 'normal' ? '已恢复常态' : '准备播放…')

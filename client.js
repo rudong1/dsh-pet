@@ -78,7 +78,7 @@ window.__ModuleLoader__.load({
               { t: '先吃饭吧', align: 'left', offset: 16 },
             ],
           },
-          ...(['slack', 'parcel'].map(function (id) { return { id: id, animation: id === 'slack' ? 'mintSlack' : 'mintParcel', captionTone: 'blue', captionGap: 12 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
+          ...(['slack', 'parcel', 'fishing', 'dance'].map(function (id) { return { id: id, animation: 'mint' + id.charAt(0).toUpperCase() + id.slice(1), captionTone: 'blue', captionGap: 12 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
           ...(MINT_CLAUDE_SEQUENCE ? [{ id: 'claude', animation: 'mintClaude', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_SNEAK_SEQUENCE ? [{ id: 'sneak', animation: 'mintSneak', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_RICE_SEQUENCE ? [{ id: 'rice', animation: 'mintRice', captionTone: 'blue', captionGap: 12 }] : []),
@@ -125,7 +125,7 @@ window.__ModuleLoader__.load({
               { t: '……真是变态的要求', align: 'center', rotate: 4 },
             ],
           },
-          ...(['coffee', 'goodnight'].map(function (id) { return { id: id, animation: id === 'coffee' ? 'altCoffee' : 'altGoodnight', captionTone: 'pink', captionGap: 96 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
+          ...(['coffee', 'goodnight', 'umbrella', 'wish'].map(function (id) { return { id: id, animation: 'alt' + id.charAt(0).toUpperCase() + id.slice(1), captionTone: 'pink', captionGap: 96 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
           ...(CONFESS_SEQUENCE ? [{ id: 'confess', animation: 'altConfess', captionTone: 'pink', captionGap: 96 }] : []),
           ...(PEEK_SEQUENCE ? [{ id: 'peek', animation: 'altPeek', captionTone: 'pink', captionGap: 96 }] : []),
         ],
@@ -167,6 +167,11 @@ window.__ModuleLoader__.load({
       '@keyframes dsh-pet-sneak-share{0%,100%{transform:scale(1)}45%{transform:translateY(-3px) scale(1.07)}75%{transform:translateY(-1px) scale(1.035)}}',
       '@keyframes dsh-pet-idle-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(2px) scale(1.008,.995)}}',
       '@keyframes dsh-pet-encourage{0%,100%{transform:translateY(0)}30%,70%{transform:translateY(-3px)}50%{transform:translateY(1px)}}',
+      '@keyframes dsh-pet-fishing-tug{0%,100%{transform:rotate(0) translateY(0)}35%{transform:rotate(-3deg) translateY(2px)}65%{transform:rotate(2deg) translateY(-3px)}}',
+      '@keyframes dsh-pet-dance-left{0%,100%{transform:rotate(0)}30%{transform:translate(-4px,-3px) rotate(-5deg)}70%{transform:translate(2px,0) rotate(2deg)}}',
+      '@keyframes dsh-pet-dance-right{0%,100%{transform:rotate(0)}30%{transform:translate(4px,-3px) rotate(5deg)}70%{transform:translate(-2px,0) rotate(-2deg)}}',
+      '@keyframes dsh-pet-umbrella-sway{0%,100%{transform:rotate(0)}35%{transform:rotate(-1deg)}70%{transform:rotate(1deg)}}',
+      '@keyframes dsh-pet-star-offer{0%,100%{transform:scale(1)}45%{transform:translateY(-2px) scale(1.02)}}',
       '@media (prefers-reduced-motion: reduce){',
       '.dsh-pet-motion{animation:none !important}',
       '.dsh-pet-sequence-layer,.dsh-pet-sequence-motion{transition:none !important;animation:none !important}',
@@ -400,7 +405,7 @@ window.__ModuleLoader__.load({
         const preview = new URLSearchParams(window.location.search).get('preview')
         return Math.max(0, form.states.findIndex(function (state) { return state.animation && state.id === preview }))
       })
-      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
+      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight', 'fishing', 'dance', 'umbrella', 'wish'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
       const [sequenceStep, setSequenceStep] = React.useState(0)
       const [sequenceDone, setSequenceDone] = React.useState(false)
       const sequenceRef = React.useRef({ active: false, step: 0 })
