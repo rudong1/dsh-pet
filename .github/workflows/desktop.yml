@@ -41,7 +41,7 @@ jobs:
   windows-desktop-tests:
     name: Windows desktop tests
     runs-on: windows-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: desktop

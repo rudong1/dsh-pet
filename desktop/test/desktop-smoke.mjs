@@ -28,7 +28,7 @@ try {
     dialog.showMessageBox = async (parent, options) => { Menu.testHelp = options; return { response: 0 } }
   })
   await page.evaluate(() => window.desktopPet.showMenu())
-  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '伪装 Claude', '哈~', '要饭', '检查更新', '帮助', '退出'])
+  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '检查更新', '帮助', '退出'])
   async function menuClick(label) {
     await app.evaluate(({ Menu }, label) => {
       const item = Menu.testMenu.items.find(item => item.label === label)
@@ -72,8 +72,8 @@ try {
       item.click(item)
     }, label)
     await state(form, initial)
-    const specialLabels = await app.evaluate(({ Menu }) => Menu.testMenu.items.filter(i => ['伪装 Claude', '哈~', '要饭', '工作ing', '表白'].includes(i.label)).map(i => i.label))
-    assert.deepEqual(specialLabels, form === 'mint' ? ['伪装 Claude', '哈~', '要饭'] : ['工作ing', '表白'])
+    const specialLabels = await app.evaluate(({ Menu }) => Menu.testMenu.items.filter(i => ['伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '工作ing', '表白', '咖啡加油', '晚安守候'].includes(i.label)).map(i => i.label))
+    assert.deepEqual(specialLabels, form === 'mint' ? ['伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递'] : ['工作ing', '表白', '咖啡加油', '晚安守候'])
     await page.clock.install()
     const bounds = await page.locator('#root img').boundingBox()
     const head = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height * 0.2 }
@@ -172,6 +172,33 @@ try {
 
   await selectForm('一形态（mint）')
   await state('mint', 'peace')
+  await menuClick('偷吃')
+  await state('mint', 'sneak')
+  await page.clock.resume()
+  for (const name of ['refuse', 'hungry', 'bite', 'caught', 'hide', 'share']) {
+    await page.waitForFunction(n => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === n, name, { timeout: 10000 })
+    assert.equal(await page.locator('[data-pet-sprite]').getAttribute('data-pet-sprite'), 'mintSneak')
+    const layer = page.locator('[data-sequence-layer="' + name + '"]')
+    assert.equal(await layer.locator('svg image').count(), 1)
+    assert.equal(await layer.evaluate(e => getComputedStyle(e).backgroundImage), 'none')
+    assert.ok((await layer.locator('svg path').getAttribute('d')).length > 100)
+  }
+  await page.clock.runFor(120010)
+  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'share')
+  await page.mouse.move(210, 270); await page.mouse.down(); await page.mouse.move(230, 290); await page.mouse.up()
+  assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), 'share')
+  await page.mouse.click(210, 270)
+  await state('mint', 'peace')
+  assert.equal(await app.evaluate(({ Menu }) => Menu.testMenu.items.find(i => i.label === '偷吃').checked), false)
+  await menuClick('偷吃')
+  await state('mint', 'sneak')
+  await page.clock.resume()
+  await page.waitForFunction(() => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === 'bite', null, { timeout: 10000 })
+  await page.mouse.click(210, 270)
+  await page.waitForFunction(() => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === 'caught', null, { timeout: 1000 })
+  await menuClick('偷吃')
+  await state('mint', 'peace')
+  console.log('PASS 偷吃 renders all 6 complete atlas poses, holds through idle/drag, discovers early and restores mint')
   await menuClick('要饭')
   await state('mint', 'rice')
   await page.clock.resume()
@@ -238,6 +265,45 @@ try {
   await state('alt', 'intro')
   await page.clock.install()
   console.log('PASS 哈~ plays all 5 stages, holds the whale, returns to mint and switches forms correctly')
+
+  for (const story of [
+    { form: 'mint', label: '摸鱼被抓', id: 'slack', phases: ['doze', 'awake', 'study', 'sorry'] },
+    { form: 'mint', label: '鲸鱼快递', id: 'parcel', phases: ['wait', 'delivered', 'open', 'hug'] },
+    { form: 'alt', label: '咖啡加油', id: 'coffee', phases: ['yawn', 'brew', 'offer', 'cheer'] },
+    { form: 'alt', label: '晚安守候', id: 'goodnight', phases: ['watch', 'fold', 'tuck', 'night'] },
+  ]) {
+    const normal = story.form === 'mint' ? 'peace' : 'intro'
+    await selectForm(story.form === 'mint' ? '一形态（mint）' : '二形态（alt）')
+    await state(story.form, normal)
+    await menuClick(story.label)
+    await state(story.form, story.id)
+    await page.clock.resume()
+    for (const phase of story.phases) {
+      await page.waitForFunction(n => document.querySelector('[data-sequence-frame]')?.dataset.sequenceFrame === n, phase, { timeout: 10000 })
+      const layer = page.locator('[data-sequence-layer="' + phase + '"]')
+      assert.equal(await layer.locator('svg image').count(), 1)
+      assert.ok((await layer.locator('svg path').getAttribute('d')).length > 100)
+      if (process.env.PET_VISUAL_DIR) {
+        await mkdir(process.env.PET_VISUAL_DIR, { recursive: true })
+        await page.waitForTimeout(350)
+        await page.screenshot({ path: path.join(process.env.PET_VISUAL_DIR, story.id + '-' + phase + '.png') })
+      }
+    }
+    await page.clock.runFor(120010)
+    assert.equal(await page.locator('[data-sequence-frame]').getAttribute('data-sequence-frame'), story.phases.at(-1))
+    const readable = await page.locator('[data-pet-layer="caption"]').evaluate(e => {
+      let m = new DOMMatrix(); for (let n = e; n; n = n.parentElement) m = new DOMMatrix(getComputedStyle(n).transform).multiply(m)
+      return m.a * m.d - m.b * m.c > 0
+    })
+    assert.ok(readable)
+    await page.mouse.click(210, 270)
+    await state(story.form, normal)
+    assert.equal(await app.evaluate(({ Menu }, label) => Menu.testMenu.items.find(i => i.label === label).checked, story.label), false)
+    await menuClick(story.label); await state(story.form, story.id)
+    await menuClick(story.label); await state(story.form, normal)
+    console.log('PASS ' + story.label + ': all four complete poses, final hold, readable caption, click/menu exit')
+  }
+  await page.clock.install()
 
   await page.clock.runFor(120010)
   await state('alt', 'sleep')

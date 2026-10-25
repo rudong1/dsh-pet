@@ -33,6 +33,7 @@ window.__ModuleLoader__.load({
     // One form for now, so every visit shows the supplied artwork.
     // Add more entries here to alternate by visit parity again.
     const ANIMATIONS = window.__DSH_PET_ANIMATIONS__ || {}
+    const MINT_SNEAK_SEQUENCE = ANIMATIONS.mintSneak
     const MINT_RICE_SEQUENCE = ANIMATIONS.mintRice
     const MINT_CLAUDE_SEQUENCE = ANIMATIONS.mintClaude
     const MINT_HA_SEQUENCE = ANIMATIONS.mintHa
@@ -77,7 +78,9 @@ window.__ModuleLoader__.load({
               { t: '先吃饭吧', align: 'left', offset: 16 },
             ],
           },
+          ...(['slack', 'parcel'].map(function (id) { return { id: id, animation: id === 'slack' ? 'mintSlack' : 'mintParcel', captionTone: 'blue', captionGap: 12 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
           ...(MINT_CLAUDE_SEQUENCE ? [{ id: 'claude', animation: 'mintClaude', captionTone: 'blue', captionGap: 12 }] : []),
+          ...(MINT_SNEAK_SEQUENCE ? [{ id: 'sneak', animation: 'mintSneak', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_RICE_SEQUENCE ? [{ id: 'rice', animation: 'mintRice', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_HA_SEQUENCE ? [{ id: 'ha', animation: 'mintHa', captionTone: 'blue', captionGap: 12 }] : []),
         ],
@@ -122,6 +125,7 @@ window.__ModuleLoader__.load({
               { t: '……真是变态的要求', align: 'center', rotate: 4 },
             ],
           },
+          ...(['coffee', 'goodnight'].map(function (id) { return { id: id, animation: id === 'coffee' ? 'altCoffee' : 'altGoodnight', captionTone: 'pink', captionGap: 96 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
           ...(CONFESS_SEQUENCE ? [{ id: 'confess', animation: 'altConfess', captionTone: 'pink', captionGap: 96 }] : []),
           ...(PEEK_SEQUENCE ? [{ id: 'peek', animation: 'altPeek', captionTone: 'pink', captionGap: 96 }] : []),
         ],
@@ -155,9 +159,17 @@ window.__ModuleLoader__.load({
       '@keyframes dsh-pet-reading{0%,100%{transform:rotate(-2deg) translateY(0)}25%{transform:rotate(0deg) translateY(-2px)}50%{transform:rotate(2deg) translateY(0)}75%{transform:rotate(0deg) translateY(-1px)}}',
       '@keyframes dsh-pet-ha-breath{0%{opacity:0;transform:scale(.4)}30%{opacity:.7}100%{opacity:0;transform:translate(-18px,8px) scale(1.8)}}',
       '@keyframes dsh-pet-puff{0%{opacity:0;transform:translate(0,0) scale(0.4)}30%{opacity:0.65}100%{opacity:0;transform:translate(30px,-14px) scale(1.9)}}',
+      '@keyframes dsh-pet-sneak-refuse{0%,100%{transform:rotate(0)}20%,65%{transform:translateX(-4px) rotate(-2deg)}40%,80%{transform:translateX(4px) rotate(2deg)}}',
+      '@keyframes dsh-pet-sneak-hungry{0%,100%{transform:translateY(0)}25%{transform:rotate(-1deg) translateY(1px)}50%{transform:rotate(1deg) translateY(3px)}75%{transform:rotate(-1deg) translateY(1px)}}',
+      '@keyframes dsh-pet-sneak-bite{0%,100%{transform:scale(1)}25%,75%{transform:translateY(-3px) scale(1.025)}50%{transform:translateY(-1px) scale(.995)}}',
+      '@keyframes dsh-pet-sneak-caught{0%,100%{transform:translateY(0)}20%{transform:translateY(-10px) rotate(-4deg)}45%{transform:translateY(-2px) rotate(3deg)}70%{transform:rotate(-1deg)}}',
+      '@keyframes dsh-pet-sneak-hide{0%,100%{transform:translateX(0)}35%{transform:translateX(13px) rotate(-3deg)}70%{transform:translateX(6px) rotate(1deg)}}',
+      '@keyframes dsh-pet-sneak-share{0%,100%{transform:scale(1)}45%{transform:translateY(-3px) scale(1.07)}75%{transform:translateY(-1px) scale(1.035)}}',
+      '@keyframes dsh-pet-idle-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(2px) scale(1.008,.995)}}',
+      '@keyframes dsh-pet-encourage{0%,100%{transform:translateY(0)}30%,70%{transform:translateY(-3px)}50%{transform:translateY(1px)}}',
       '@media (prefers-reduced-motion: reduce){',
       '.dsh-pet-motion{animation:none !important}',
-      '.dsh-pet-sequence-layer,.dsh-pet-sequence-motion{transition:none !important}',
+      '.dsh-pet-sequence-layer,.dsh-pet-sequence-motion{transition:none !important;animation:none !important}',
       '}',
     ].join('')
 
@@ -326,8 +338,15 @@ window.__ModuleLoader__.load({
         return h('div', {
           key: pose.name,
           className: 'dsh-pet-sequence-layer',
-          style: { position: 'absolute', inset: 0, backgroundImage: 'url("' + pose.src + '")', backgroundRepeat: 'no-repeat', backgroundSize: 'contain', backgroundPosition: 'center', opacity: props.step === index ? 1 : 0, transition: 'opacity ' + sequence.transitionMs + 'ms ease-in-out' },
-        })
+          'data-sequence-layer': pose.name,
+          style: { position: 'absolute', inset: 0, backgroundImage: pose.viewport ? 'none' : 'url("' + pose.src + '")', backgroundRepeat: 'no-repeat', backgroundSize: 'contain', backgroundPosition: 'center', opacity: props.step === index ? 1 : 0, transition: 'opacity ' + sequence.transitionMs + 'ms ease-in-out' },
+        }, pose.viewport ? h('svg', {
+          viewBox: pose.viewport[0] + ' ' + pose.viewport[1] + ' ' + (pose.viewport[2] - pose.viewport[0]) + ' ' + (pose.viewport[3] - pose.viewport[1]),
+          preserveAspectRatio: 'xMidYMax meet', width: '100%', height: '100%', 'aria-hidden': true,
+          style: { display: 'block' },
+        }, h('defs', null, h('clipPath', { id: props.animation + '-' + pose.name, clipPathUnits: 'userSpaceOnUse' }, h('path', { d: pose.clipOutline }))),
+          h('image', { href: pose.src, width: pose.sourceWidth, height: pose.sourceHeight, clipPath: 'url(#' + props.animation + '-' + pose.name + ')' })
+        ) : null)
       }), frame.thought ? h('span', { 'aria-hidden': true, style: { position: 'absolute', right: '12%', top: '3%', color: '#ffe6c4', fontSize: '22px', textShadow: '0 0 3px #fff', pointerEvents: 'none' } }, '○ ◯') : null, frame.breath ? h('span', {
         key: 'breath',
         className: 'dsh-pet-motion',
@@ -381,7 +400,7 @@ window.__ModuleLoader__.load({
         const preview = new URLSearchParams(window.location.search).get('preview')
         return Math.max(0, form.states.findIndex(function (state) { return state.animation && state.id === preview }))
       })
-      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
+      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
       const [sequenceStep, setSequenceStep] = React.useState(0)
       const [sequenceDone, setSequenceDone] = React.useState(false)
       const sequenceRef = React.useRef({ active: false, step: 0 })
@@ -515,6 +534,7 @@ window.__ModuleLoader__.load({
               writeStore(saved)
             }
           } else {
+            if (sequenceRef.current.sneakDiscovery) { setSequenceStep(3); return }
             if (sequenceRef.current.discover && sequenceRef.current.step <= 3) {
               setSequenceStep(4)
               armIdle()
@@ -544,6 +564,7 @@ window.__ModuleLoader__.load({
           armIdle()
         }
         function onPreviewCaught() {
+          if (sequenceRef.current.sneakDiscovery) { setSequenceStep(3); return }
           if (sequenceRef.current.discover && sequenceRef.current.step <= 3) setSequenceStep(4)
         }
         function onPointerOut(event) { if (!event.relatedTarget) cancelHeadHover(true) }
@@ -608,7 +629,7 @@ window.__ModuleLoader__.load({
       const selectedState = form.states[stateIndex % form.states.length]
       const currentSequence = ANIMATIONS[selectedState.animation]
       const sequenceActive = !!(currentSequence && !asleep && !reaction)
-      sequenceRef.current = { active: sequenceActive, discover: sequenceActive && selectedState.animation === 'altPeek', step: sequenceStep, last: sequenceActive && sequenceStep === currentSequence.frames.length - 1 }
+      sequenceRef.current = { active: sequenceActive, discover: sequenceActive && selectedState.animation === 'altPeek', step: sequenceStep, sneakDiscovery: sequenceActive && selectedState.animation === 'mintSneak' && sequenceStep === 2, last: sequenceActive && sequenceStep === currentSequence.frames.length - 1 }
       React.useEffect(function () {
         if (sequenceActive) { setSequenceStep(0); setSequenceDone(false) }
       }, [sequenceActive, currentSequence])
