@@ -16,6 +16,6 @@ jobs:
         with:
           name: alt-peek-animation-preview
           path: |
-            preview/apple-story-preview.zip
+            preview/mint-comfort-preview.zip
             preview/README.txt
           if-no-files-found: error
