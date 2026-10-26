@@ -78,7 +78,7 @@ window.__ModuleLoader__.load({
               { t: '先吃饭吧', align: 'left', offset: 16 },
             ],
           },
-          ...(['slack', 'parcel', 'fishing', 'dance'].map(function (id) { return { id: id, animation: 'mint' + id.charAt(0).toUpperCase() + id.slice(1), captionTone: 'blue', captionGap: 12 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
+          ...(['slack', 'parcel', 'fishing', 'dance', 'bubbles', 'comfort'].map(function (id) { return { id: id, animation: 'mint' + id.charAt(0).toUpperCase() + id.slice(1), captionTone: 'blue', captionGap: id === 'comfort' ? 24 : 12 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
           ...(MINT_CLAUDE_SEQUENCE ? [{ id: 'claude', animation: 'mintClaude', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_SNEAK_SEQUENCE ? [{ id: 'sneak', animation: 'mintSneak', captionTone: 'blue', captionGap: 12 }] : []),
           ...(MINT_RICE_SEQUENCE ? [{ id: 'rice', animation: 'mintRice', captionTone: 'blue', captionGap: 12 }] : []),
@@ -125,7 +125,7 @@ window.__ModuleLoader__.load({
               { t: '……真是变态的要求', align: 'center', rotate: 4 },
             ],
           },
-          ...(['coffee', 'goodnight', 'umbrella', 'wish'].map(function (id) { return { id: id, animation: 'alt' + id.charAt(0).toUpperCase() + id.slice(1), captionTone: 'pink', captionGap: 96 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
+          ...(['coffee', 'goodnight', 'umbrella', 'wish', 'scarf'].map(function (id) { return { id: id, animation: 'alt' + id.charAt(0).toUpperCase() + id.slice(1), captionTone: 'pink', captionGap: 96 } }).filter(function (state) { return ANIMATIONS[state.animation] })),
           ...(CONFESS_SEQUENCE ? [{ id: 'confess', animation: 'altConfess', captionTone: 'pink', captionGap: 96 }] : []),
           ...(PEEK_SEQUENCE ? [{ id: 'peek', animation: 'altPeek', captionTone: 'pink', captionGap: 96 }] : []),
         ],
@@ -405,7 +405,7 @@ window.__ModuleLoader__.load({
         const preview = new URLSearchParams(window.location.search).get('preview')
         return Math.max(0, form.states.findIndex(function (state) { return state.animation && state.id === preview }))
       })
-      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight', 'fishing', 'dance', 'umbrella', 'wish'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
+      const specialMode = ['work', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight', 'fishing', 'dance', 'umbrella', 'wish', 'bubbles', 'scarf', 'comfort'].indexOf(new URLSearchParams(window.location.search).get('special')) !== -1
       const [sequenceStep, setSequenceStep] = React.useState(0)
       const [sequenceDone, setSequenceDone] = React.useState(false)
       const sequenceRef = React.useRef({ active: false, step: 0 })

@@ -28,7 +28,7 @@ try {
     dialog.showMessageBox = async (parent, options) => { Menu.testHelp = options; return { response: 0 } }
   })
   await page.evaluate(() => window.desktopPet.showMenu())
-  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '钓到惊喜', '偷偷练舞', '检查更新', '帮助', '退出'])
+  assert.deepEqual(await app.evaluate(({ Menu }) => Menu.testPopup.items.map(item => item.label)), ['切换形态', '伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '钓到惊喜', '偷偷练舞', '气泡大作战', '哄鱼联盟', '检查更新', '帮助', '退出'])
   async function menuClick(label) {
     await app.evaluate(({ Menu }, label) => {
       const item = Menu.testMenu.items.find(item => item.label === label)
@@ -72,8 +72,8 @@ try {
       item.click(item)
     }, label)
     await state(form, initial)
-    const specialLabels = await app.evaluate(({ Menu }) => Menu.testMenu.items.filter(i => ['伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '钓到惊喜', '偷偷练舞', '工作ing', '表白', '咖啡加油', '晚安守候', '雨天送伞', '星光许愿'].includes(i.label)).map(i => i.label))
-    assert.deepEqual(specialLabels, form === 'mint' ? ['伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '钓到惊喜', '偷偷练舞'] : ['工作ing', '表白', '咖啡加油', '晚安守候', '雨天送伞', '星光许愿'])
+    const specialLabels = await app.evaluate(({ Menu }) => Menu.testMenu.items.filter(i => ['伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '钓到惊喜', '偷偷练舞', '气泡大作战', '哄鱼联盟', '工作ing', '表白', '咖啡加油', '晚安守候', '雨天送伞', '星光许愿', '暖心围巾'].includes(i.label)).map(i => i.label))
+    assert.deepEqual(specialLabels, form === 'mint' ? ['伪装 Claude', '哈~', '要饭', '偷吃', '摸鱼被抓', '鲸鱼快递', '钓到惊喜', '偷偷练舞', '气泡大作战', '哄鱼联盟'] : ['工作ing', '表白', '咖啡加油', '晚安守候', '雨天送伞', '星光许愿', '暖心围巾'])
     await page.clock.install()
     const bounds = await page.locator('#root img').boundingBox()
     const head = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height * 0.2 }
@@ -267,6 +267,9 @@ try {
   console.log('PASS 哈~ plays all 5 stages, holds the whale, returns to mint and switches forms correctly')
 
   for (const story of [
+    { form: 'mint', label: '哄鱼联盟', id: 'comfort', phases: ['sulk', 'puppet', 'oops', 'comfort', 'rice', 'together'] },
+    { form: 'mint', label: '气泡大作战', id: 'bubbles', phases: ['dip', 'blow', 'pop', 'proud'] },
+    { form: 'alt', label: '暖心围巾', id: 'scarf', phases: ['chilly', 'knit', 'wrap', 'warm'] },
     { form: 'mint', label: '钓到惊喜', id: 'fishing', phases: ['cast', 'tug', 'splash', 'friend'] },
     { form: 'mint', label: '偷偷练舞', id: 'dance', phases: ['ready', 'dance-left', 'dance-right', 'seen'] },
     { form: 'alt', label: '雨天送伞', id: 'umbrella', phases: ['rain', 'unfold', 'invite', 'shelter'] },
@@ -305,7 +308,7 @@ try {
     assert.equal(await app.evaluate(({ Menu }, label) => Menu.testMenu.items.find(i => i.label === label).checked, story.label), false)
     await menuClick(story.label); await state(story.form, story.id)
     await menuClick(story.label); await state(story.form, normal)
-    console.log('PASS ' + story.label + ': all four complete poses, final hold, readable caption, click/menu exit')
+    console.log('PASS ' + story.label + ': all ' + story.phases.length + ' complete poses, final hold, readable caption, click/menu exit')
   }
   await page.clock.install()
 

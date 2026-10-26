@@ -1,3 +1,6 @@
+import comfort from './comfort-poses.mjs'
+import bubbles from './bubbles-poses.mjs'
+import scarf from './scarf-poses.mjs'
 import fishing from './fishing-poses.mjs'
 import dance from './dance-poses.mjs'
 import umbrella from './umbrella-poses.mjs'
@@ -68,3 +71,29 @@ export const altWishSequence = story(wish, 'alt', [
   { name: 'wish', duration: 2400, caption: '希望主人今天的烦恼，\n都能慢慢变小。', motion: 'dsh-pet-idle-breathe 2000ms ease-in-out' },
   { name: 'gift', duration: 2600, caption: '愿望放在这里啦。\n明天也请多关照。', motion: 'dsh-pet-star-offer 1800ms ease-in-out' },
 ])
+
+export const mintBubblesSequence = story(bubbles, 'mint', [
+  { name: 'dip', duration: 1800, caption: '今天来挑战\n超级大泡泡！' },
+  { name: 'blow', duration: 2200, caption: '呼——\n再大一点点……', motion: 'dsh-pet-idle-breathe 1800ms ease-in-out' },
+  { name: 'pop', duration: 1600, caption: '哇！怎么炸我鼻子上啦！', motion: 'dsh-pet-sneak-caught 650ms ease-out' },
+  { name: 'proud', duration: 2600, caption: '哼，刚才只是热身！\n下一次肯定成功！', motion: 'dsh-pet-encourage 1500ms ease-in-out' },
+])
+export const altScarfSequence = story(scarf, 'alt', [
+  { name: 'chilly', duration: 1800, caption: '今天有点冷……\n主人也要注意保暖。', motion: 'dsh-pet-idle-breathe 1600ms ease-in-out' },
+  { name: 'knit', duration: 2400, caption: '一针，再一针……\n把小鲸鱼也织进去。', motion: 'dsh-pet-reading 2000ms ease-in-out' },
+  { name: 'wrap', duration: 2400, caption: '织好了，送给你。\n试试合不合适？', motion: 'dsh-pet-star-offer 1800ms ease-in-out' },
+  { name: 'warm', duration: 2600, caption: '像这样围好就很暖啦。\n出门可别忘记哦。', motion: 'dsh-pet-idle-breathe 1800ms ease-in-out' },
+])
+
+// A wider group canvas keeps the protagonist close to her ordinary height.
+export const mintComfortSequence = {
+  ...story(comfort, 'mint', [
+    { name: 'sulk', duration: 2200, caption: '大肥鱼：哼！\n今天谁哄我都没用！' },
+    { name: 'puppet', duration: 2600, caption: '小龙娘：看，小鲸鱼来啦！\n它说最喜欢你。', motion: 'dsh-pet-reading 2100ms ease-in-out' },
+    { name: 'oops', duration: 2400, caption: '大肥鱼：你学得一点都不像！\n小龙娘：欸？更生气了？！', motion: 'dsh-pet-sneak-caught 650ms ease-out' },
+    { name: 'comfort', duration: 2800, caption: 'Claude：好啦，委屈都听见了。\n先摸摸头，慢慢说。', captionTone: 'orange', motion: 'dsh-pet-idle-breathe 2200ms ease-in-out' },
+    { name: 'rice', duration: 2800, caption: 'Claude：大米饭和抱抱，\n都给你留着呢。', captionTone: 'orange' },
+    { name: 'together', duration: 3200, caption: '大肥鱼：才不是被哄好了……\n是你们抱得太暖啦！', scale: 1.035, motion: 'dsh-pet-star-offer 1800ms ease-in-out' },
+  ]),
+  width: 360, height: 170,
+}

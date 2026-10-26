@@ -21,7 +21,10 @@ const SPECIALS = {
   fishing: { label: '钓到惊喜', form: 'mint', state: 'fishing' },
   dance: { label: '偷偷练舞', form: 'mint', state: 'dance' },
   umbrella: { label: '雨天送伞', form: 'alt', state: 'umbrella' },
-  wish: { label: '星光许愿', form: 'alt', state: 'wish' }
+  wish: { label: '星光许愿', form: 'alt', state: 'wish' },
+  bubbles: { label: '气泡大作战', form: 'mint', state: 'bubbles' },
+  scarf: { label: '暖心围巾', form: 'alt', state: 'scarf' },
+  comfort: { label: '哄鱼联盟', form: 'mint', state: 'comfort' }
 }
 
 function savePreferences() {

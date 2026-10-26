@@ -10,7 +10,7 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', default='alt-peek-preview')
-parser.add_argument('--action', choices=['peek', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight', 'fishing', 'dance', 'umbrella', 'wish'], default='peek')
+parser.add_argument('--action', choices=['peek', 'confess', 'ha', 'claude', 'rice', 'sneak', 'slack', 'parcel', 'coffee', 'goodnight', 'fishing', 'dance', 'umbrella', 'wish', 'bubbles', 'scarf', 'comfort'], default='peek')
 parser.add_argument('--only-selected', action='store_true', help='Embed only the selected story for a smaller standalone preview')
 args = parser.parse_args()
 name = args.name
@@ -31,7 +31,7 @@ for filename in ['preview.js', 'renderer.js', 'client.js']:
     source = (dist / filename).read_text(encoding='utf-8')
     if filename == 'renderer.js':
         pattern = r'new URL\((.+?),window\.location\.href\)\.href'
-        story_dirs = {'peek': ('alt-peek', 8), 'confess': ('alt-confess', 7), 'ha': ('mint-ha', 5), 'claude': ('mint-claude', 6), 'rice': ('mint-rice', 5), 'sneak': ('mint-sneak', 1), 'slack': ('mint-slack', 1), 'parcel': ('mint-parcel', 1), 'coffee': ('alt-coffee', 1), 'goodnight': ('alt-goodnight', 1), 'fishing': ('mint-fishing', 1), 'dance': ('mint-dance', 1), 'umbrella': ('alt-umbrella', 1), 'wish': ('alt-wish', 1)}
+        story_dirs = {'peek': ('alt-peek', 8), 'confess': ('alt-confess', 7), 'ha': ('mint-ha', 5), 'claude': ('mint-claude', 6), 'rice': ('mint-rice', 5), 'sneak': ('mint-sneak', 1), 'slack': ('mint-slack', 1), 'parcel': ('mint-parcel', 1), 'coffee': ('alt-coffee', 1), 'goodnight': ('alt-goodnight', 1), 'fishing': ('mint-fishing', 1), 'dance': ('mint-dance', 1), 'umbrella': ('alt-umbrella', 1), 'wish': ('alt-wish', 1), 'bubbles': ('mint-bubbles', 1), 'scarf': ('alt-scarf', 1), 'comfort': ('mint-comfort', 1)}
         selected_dirs = [story_dirs[args.action]] if args.only_selected else list(story_dirs.values())
         images = {directory.name + '/' + p.name: 'data:image/png;base64,' + base64.b64encode(p.read_bytes()).decode('ascii') for directory in [dist / directory for directory, count in selected_dirs] for p in directory.glob('*.png')}
         if len(images) != sum(count for directory, count in selected_dirs):
